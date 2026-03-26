@@ -15,12 +15,7 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    phone: {
-      type: String,
-      unique: true,
-      sparse: true,
-      trim: true,
-    },
+
     password: {
       type: String,
       required: [true, 'Password is required'],
@@ -29,6 +24,42 @@ const userSchema = new mongoose.Schema(
     isVerified: {
       type: Boolean,
       default: false,
+    },
+    phone: {
+      type: String,
+      trim: true,
+    },
+    photo: {
+      type: String,
+      trim: true,
+    },
+    headline: {
+      type: String,
+      trim: true,
+    },
+    bio: {
+      type: String,
+      trim: true,
+    },
+    location: {
+      type: String,
+      trim: true,
+    },
+    website: {
+      type: String,
+      trim: true,
+    },
+    linkedin: {
+      type: String,
+      trim: true,
+    },
+    github: {
+      type: String,
+      trim: true,
+    },
+    skills: {
+      type: [String],
+      default: [],
     },
   },
   {

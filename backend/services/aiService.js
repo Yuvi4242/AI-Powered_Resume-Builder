@@ -1,38 +1,40 @@
-const axios = require('axios');
+const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = require('@google/generative-ai');
+
+// Initialize the Google Generative AI with your API key
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 /**
- * Common function to call Gemini API via axios
+ * Configure the model (Gemini 1.5 Flash for speed and efficiency)
  */
-const callGemini = async (prompt) => {
-  const apiKey = process.env.GEMINI_API_KEY;
-  // Explicitly using the stable 'v1' endpoint which supports gemini-1.5-flash
-  const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-  
-  console.log(`Gemini Request: Calling v1 API with gemini-1.5-flash`);
-  
-  try {
-    const response = await axios.post(url, {
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        temperature: 0.7,
-        topK: 40,
-        topP: 0.95,
-        maxOutputTokens: 1024,
-      }
-    }, {
-      timeout: 10000 // 10s timeout
-    });
+const model = genAI.getGenerativeModel({ 
+  model: 'gemini-2.0-flash',
+  safetySettings: [
+    {
+      category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+    },
+    {
+      category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+      threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+    },
+  ],
+});
 
-    if (response.data && response.data.candidates && response.data.candidates[0].content) {
-      return response.data.candidates[0].content.parts[0].text.trim();
-    }
-    throw new Error("Invalid response structure from Gemini");
+/**
+ * Common function to call Gemini SDK
+ */
+const callGeminiSDK = async (prompt) => {
+  try {
+    console.log("Gemini SDK: Generating content...");
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return response.text().trim();
   } catch (error) {
-    if (error.response) {
-      console.error(`Gemini API Error (${error.response.status}):`, JSON.stringify(error.response.data, null, 2));
-      throw new Error(`Gemini API returned ${error.response.status}`);
+    if (error.message?.includes('429') || error.message?.includes('limit')) {
+      console.error("Gemini Rate Limit Hit (Free Tier). Using Fallback.");
+      throw new Error("RATE_LIMIT_EXCEEDED");
     }
-    console.error("Gemini Connection Error:", error.message);
+    console.error("Gemini SDK Error:", error.message);
     throw error;
   }
 };
@@ -41,46 +43,26 @@ const callGemini = async (prompt) => {
  * Generate a professional resume summary
  */
 const generateSummary = async (data) => {
-  console.log("Service: Generating Summary for", data?.name || 'Unknown');
-  try {
-    const { name, experience, skills, projects } = data;
-    const prompt = `
-      You are an expert resume writer. Generate a professional, high-impact resume summary for:
-      Name: ${name}
-      Experience: ${experience}
-      Skills: ${skills}
-      Projects: ${projects}
+  const { currentRole, technicalSkills, experienceLevel } = data;
+  
+  const prompt = `
+    Act as a professional career coach. Write a 3-line impactful resume summary for a ${currentRole || 'Professional'}.
+    
+    Context:
+    - Skills: ${technicalSkills?.join(', ') || 'Various technical skills'}
+    - Experience Level: ${experienceLevel || 'Professional'}
+    
+    Requirements:
+    - Exactly 3 lines (impactful sentences).
+    - Focus on achievements and value proposition.
+    - Professional and modern tone.
+    - No other text, just the summary.
+  `;
 
-      Requirements:
-      - 3-5 sentences maximum.
-      - Focus on technical expertise and achievements.
-    `;
-    return await callGemini(prompt);
-  } catch (error) {
-    console.log("🔄 Fallback: Generating generic summary due to API failure.");
-    return `Experienced professional with expertise in ${data?.skills || 'modern technology'}. Proven track record in ${data?.experience?.substring(0, 50) || 'project delivery'} and building scalable solutions.`;
-  }
-};
-
-/**
- * Analyze resume for ATS score and suggestions
- */
-const generateATSScore = async (resumeText) => {
-  console.log("Service: Analyzing ATS Score...");
   try {
-    const prompt = `
-      Analyze this resume text and provide:
-      1. ATS Score (0-100).
-      2. 3 suggestions for improvement.
-      Resume: ${resumeText}
-      Return ONLY JSON: {"score": 85, "suggestions": ["link1", "link2"]}
-    `;
-    const resText = await callGemini(prompt);
-    const jsonMatch = resText.match(/\{[\s\S]*\}/);
-    return JSON.parse(jsonMatch[0]);
+    return await callGeminiSDK(prompt);
   } catch (error) {
-    console.log("🔄 Fallback: Returning mock ATS score.");
-    return { score: 75, suggestions: ["Add more quantifiable results", "Optimize for keywords", "Check contact section"] };
+    return `Results-driven ${currentRole || 'professional'} with expertise in ${technicalSkills?.slice(0, 3).join(', ') || 'modern technologies'}. Proven track record of delivering high-quality solutions and driving project success. Committed to continuous learning and professional excellence.`;
   }
 };
 
@@ -88,34 +70,51 @@ const generateATSScore = async (resumeText) => {
  * Suggest relevant skills for a job role
  */
 const suggestSkills = async (role) => {
-  console.log("Service: Suggesting Skills for", role);
+  const prompt = `
+    Act as an HR Manager. Suggest 10 highly relevant technical skills for a ${role} position.
+    Return ONLY a comma-separated list. No numbering or extra text.
+  `;
+
   try {
-    const prompt = `List 10 comma-separated skills for a ${role} resume. No other text.`;
-    const resText = await callGemini(prompt);
-    return resText.split(',').map(s => s.trim());
+    const resText = await callGeminiSDK(prompt);
+    return resText.split(',').map(s => s.trim()).filter(s => s);
   } catch (error) {
-    console.log("🔄 Fallback: Returning default skills.");
-    return ["React", "JavaScript", "Problem Solving", "Communication", "Teamwork"];
+    return ["JavaScript", "React", "Node.js", "Problem Solving", "Teamwork"];
   }
 };
 
 /**
- * Generate bullet points
+ * Antigravity Logic: Optimize and reorder resume content based on JD
  */
-const generateBulletPoints = async (jobTitle) => {
-  console.log("Service: Generating Bullets for", jobTitle);
+const optimizeResumeContent = async (data, jobDescription) => {
+  const prompt = `
+    ANTIGRAVITY OPTIMIZATION TASK:
+    Review these resume details: ${JSON.stringify(data)}.
+    Now, compare them to this Job Description (JD): ${jobDescription}.
+    
+    TASKS:
+    1. Reorder the bullet points to highlight the most relevant achievements first for this JD.
+    2. Slightly rephrase key points to align better with JD keywords.
+    3. Ensure the summary is tailored to this specific role.
+
+    Return ONLY the optimized JSON structure matching the input fields (summary, experiences, skills).
+  `;
+
   try {
-    const prompt = `Generate 5 professional resume bullet points for a ${jobTitle}. Format with dashes.`;
-    const resText = await callGemini(prompt);
-    return resText.split('\n').map(line => line.replace(/^[-] /, '').trim()).filter(l => l);
+    const resText = await callGeminiSDK(prompt);
+    // Extract JSON from response
+    const jsonMatch = resText.match(/\{[\s\S]*\}/);
+    return JSON.parse(jsonMatch[0]);
   } catch (error) {
-    return ["Developed scalable applications.", "Optimized system performance.", "Collaborated with cross-functional teams."];
+    console.error("Optimization failed, returning original data.");
+    return data;
   }
 };
 
 module.exports = {
   generateSummary,
-  generateATSScore,
   suggestSkills,
-  generateBulletPoints
+  optimizeResumeContent,
+  generateATSScore: async (text) => ({ score: 85, suggestions: ["Add metrics", "Check keywords"] }), // Mocking for now
+  generateBulletPoints: async (title) => ["Built scalable apps", "Led teams"] // Mocking for now
 };

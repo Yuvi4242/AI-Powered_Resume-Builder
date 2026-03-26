@@ -6,8 +6,11 @@
 
 :root {
   --primary-gradient: linear-gradient(135deg, #1767FF 0%, #00BFA6 100%);
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.2);
+  --premium-dark: #0f172a;
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --accent-blue: #1767FF;
+  --accent-purple: #8b5cf6;
 }
 
 * {
@@ -31,6 +34,14 @@ body {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
+}
+
+.glass-premium {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 /* Custom scrollbar */
@@ -84,6 +95,15 @@ body {
 
 .card-hover:hover {
   @apply -translate-y-2 shadow-2xl;
+}
+
+.card-glow:hover {
+  box-shadow: 0 0 20px rgba(23, 103, 255, 0.15);
+  border-color: rgba(23, 103, 255, 0.3);
+}
+
+.text-gradient-blue {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500 font-bold;
 }
 
 /* Input focus effects */

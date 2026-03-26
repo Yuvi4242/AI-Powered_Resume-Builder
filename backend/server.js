@@ -9,7 +9,9 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const aiRoutes = require('./routes/aiRoutes');
+const copilotRoutes = require('./routes/copilotRoutes');
 const resumeRoutes = require('./routes/resumeRoutes');
+const userRoutes = require('./routes/userRoutes');
 const { sendTestEmail } = require('./services/emailService');
 
 console.log('=== Environment Variables ===');
@@ -59,10 +61,17 @@ app.get('/api/test-gemini', async (req, res) => {
   }
 });
 
-// Routes
+const profileRoutes = require('./routes/profileRoutes');
 app.use('/api/auth', authRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/ai', copilotRoutes);   // Copilot: /chat, /fill-profile, /generate-summary, /improve-resume
 app.use('/api/resume', resumeRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/profile', profileRoutes);
+
+// Static folder for file uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+console.log('✅ Profile routes registered at /api/profile');
 
 // Test route - Protected
 const { protect } = require('./middleware/authMiddleware');

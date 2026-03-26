@@ -10,7 +10,6 @@ const Signup = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '',
     password: '',
   });
   const [otp, setOtp] = useState('');
@@ -56,13 +55,12 @@ const Signup = () => {
     try {
       const response = await authAPI.signupOTP({
         email: formData.email,
-        phone: formData.phone,
       });
 
       if (response.data.success) {
         setStep(2);
         setTimer(120);
-        setSuccessMessage('OTP sent to your email/phone');
+        setSuccessMessage('OTP sent to your email');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send OTP');
@@ -79,11 +77,10 @@ const Signup = () => {
     try {
       const response = await authAPI.signupOTP({
         email: formData.email,
-        phone: formData.phone,
       });
       if (response.data.success) {
         setTimer(120);
-        setSuccessMessage('OTP sent to your email/phone');
+        setSuccessMessage('OTP sent to your email');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to resend OTP');
@@ -106,7 +103,6 @@ const Signup = () => {
       const response = await authAPI.signupVerify({
         name: formData.name,
         email: formData.email,
-        phone: formData.phone,
         password: formData.password,
         otp,
       });
@@ -192,7 +188,7 @@ const Signup = () => {
           <p className="text-gray-500 mb-8">
             {step === 1 
               ? 'Enter your details to get started' 
-              : 'Enter the 6-digit code sent to your email/phone'
+              : 'Enter the 6-digit code sent to your email'
             }
           </p>
 
@@ -260,24 +256,7 @@ const Signup = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Phone Number
-                </label>
-                <div className="relative">
-                  <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    required
-                    disabled={isLoading}
-                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-gray-100"
-                    placeholder="Enter your phone number"
-                  />
-                </div>
-              </div>
+
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

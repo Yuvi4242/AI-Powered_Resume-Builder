@@ -9,11 +9,9 @@ import { Button } from '../components/ui/Button';
 const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
-    phone: '',
     password: '',
   });
-  const [loginMethod, setLoginMethod] = useState('email'); // 'email' or 'phone'
-  const [step, setStep] = useState(1); // 1: input, 2: verify (for phone)
+
   const [otp, setOtp] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -38,64 +36,10 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (loginMethod === 'email') {
-      if (!formData.email || !formData.password) {
-        setError('Please enter email and password');
-        setInputError({ email: !formData.email, password: !formData.password });
-        setShakeKey(prev => prev + 1);
-        return;
-      }
-
-      setIsLoading(true);
-      setError('');
-
-      try {
-        const response = await authAPI.login({
-          email: formData.email,
-          password: formData.password,
-        });
-
-        if (response.data.success) {
-          setToken(response.data.token);
-          localStorage.setItem('user', JSON.stringify(response.data.user));
-          navigate('/dashboard');
-        }
-      } catch (err) {
-        setError(err.response?.data?.message || 'Invalid email or password');
-        setShakeKey(prev => prev + 1);
-        setInputError({ email: true, password: true });
-      } finally {
-        setIsLoading(false);
-      }
-    } else {
-      // Phone Login - Step 1: Send OTP
-      if (!formData.phone) {
-        setError('Please enter your phone number');
-        setShakeKey(prev => prev + 1);
-        return;
-      }
-
-      setIsLoading(true);
-      setError('');
-
-      try {
-        const response = await authAPI.loginOTP({ phone: formData.phone });
-        if (response.data.success) {
-          setStep(2);
-        }
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to send OTP');
-        setShakeKey(prev => prev + 1);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
-
-  const handleVerifyOTP = async (e) => {
-    e.preventDefault();
-    if (otp.length !== 6) {
-      setError('Please enter 6-digit verification code');
+    if (!formData.email || !formData.password) {
+      setError('Please enter email and password');
+      setInputError({ email: !formData.email, password: !formData.password });
+      setShakeKey(prev => prev + 1);
       return;
     }
 
@@ -103,9 +47,9 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await authAPI.loginVerify({
-        phone: formData.phone,
-        otp
+      const response = await authAPI.login({
+        email: formData.email,
+        password: formData.password,
       });
 
       if (response.data.success) {
@@ -114,12 +58,15 @@ const Login = () => {
         navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid verification code');
+      setError(err.response?.data?.message || 'Invalid email or password');
       setShakeKey(prev => prev + 1);
+      setInputError({ email: true, password: true });
     } finally {
       setIsLoading(false);
     }
   };
+
+
 
   // Floating shapes for visual side
   const FloatingShapes = () => (
@@ -227,156 +174,73 @@ const Login = () => {
             )}
           </AnimatePresence>
 
-          {/* Auth Method Toggle */}
-          <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mb-8">
-            <button
-              onClick={() => { setLoginMethod('email'); setStep(1); setError(''); }}
-              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
-                loginMethod === 'email' ? 'bg-white dark:bg-gray-700 text-primary-600 shadow-sm' : 'text-gray-500'
-              }`}
-            >
-              Email
-            </button>
-            <button
-              onClick={() => { setLoginMethod('phone'); setStep(1); setError(''); }}
-              className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${
-                loginMethod === 'phone' ? 'bg-white dark:bg-gray-700 text-primary-600 shadow-sm' : 'text-gray-500'
-              }`}
-            >
-              Phone
-            </button>
-          </div>
+
 
           {/* Login Form */}
-          <AnimatePresence mode="wait">
-            {step === 1 ? (
-              <motion.form 
-                key="step1"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                onSubmit={handleSubmit} 
-                className="space-y-5"
-              >
-                {loginMethod === 'email' ? (
-                  <>
-                    {/* Email Input */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Email Address
-                      </label>
-                      <div className="relative">
-                        <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleChange}
-                          required
-                          disabled={isLoading}
-                          className={`w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border rounded-xl focus:outline-none focus:ring-2 transition-all disabled:bg-gray-100 ${
-                            inputError.email ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:ring-primary-500'
-                          }`}
-                          placeholder="name@example.com"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Password Input */}
-                    <div>
-                      <div className="flex justify-between mb-2">
-                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
-                        <Link to="/forgot-password" size="sm" className="text-xs text-primary-600 font-bold">Forgot?</Link>
-                      </div>
-                      <div className="relative">
-                        <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          name="password"
-                          value={formData.password}
-                          onChange={handleChange}
-                          required
-                          disabled={isLoading}
-                          className={`w-full pl-12 pr-12 py-4 bg-gray-50 dark:bg-gray-800 border rounded-xl focus:outline-none focus:ring-2 transition-all disabled:bg-gray-100 ${
-                            inputError.password ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:ring-primary-500'
-                          }`}
-                          placeholder="Enter password"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
-                        >
-                          {showPassword ? <FiEyeOff /> : <FiEye />}
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  /* Phone Input */
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Phone Number
-                    </label>
-                    <div className="relative">
-                      <FiPhone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="tel"
-                        name="phone"
-                        value={formData.phone}
-                        onChange={handleChange}
-                        required
-                        disabled={isLoading}
-                        className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium"
-                        placeholder="+91 XXXXX XXXXX"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full py-4 text-lg font-black shadow-2xl shadow-primary-500/20"
-                >
-                  {isLoading ? 'Processing...' : loginMethod === 'email' ? 'Sign In' : 'Send Code'}
-                </Button>
-              </motion.form>
-            ) : (
-              /* OTP Step for Phone */
-              <motion.form 
-                key="step2"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                onSubmit={handleVerifyOTP} 
-                className="space-y-6"
-              >
-                <div>
-                  <label className="block text-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-6">
-                    Enter the 6-digit code sent to <span className="font-bold text-gray-900 dark:text-white">{formData.phone}</span>
-                  </label>
-                  <OTPInput value={otp} onChange={setOtp} disabled={isLoading} />
+            <form 
+              onSubmit={handleSubmit} 
+              className="space-y-5"
+            >
+              {/* Email Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    disabled={isLoading}
+                    className={`w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800 border rounded-xl focus:outline-none focus:ring-2 transition-all disabled:bg-gray-100 ${
+                      inputError.email ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:ring-primary-500'
+                    }`}
+                    placeholder="name@example.com"
+                  />
                 </div>
+              </div>
 
-                <Button
-                  type="submit"
-                  disabled={isLoading || otp.length !== 6}
-                  className="w-full py-4 text-lg font-black shadow-2xl shadow-primary-500/20"
-                >
-                  {isLoading ? 'Verifying...' : 'Verify & Sign In'}
-                </Button>
+              {/* Password Input */}
+              <div>
+                <div className="flex justify-between mb-2">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                  <Link to="/forgot-password" size="sm" className="text-xs text-primary-600 font-bold">Forgot?</Link>
+                </div>
+                <div className="relative">
+                  <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    disabled={isLoading}
+                    className={`w-full pl-12 pr-12 py-4 bg-gray-50 dark:bg-gray-800 border rounded-xl focus:outline-none focus:ring-2 transition-all disabled:bg-gray-100 ${
+                      inputError.password ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 dark:border-gray-700 focus:ring-primary-500'
+                    }`}
+                    placeholder="Enter password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  >
+                    {showPassword ? <FiEyeOff /> : <FiEye />}
+                  </button>
+                </div>
+              </div>
 
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className="w-full flex items-center justify-center gap-2 text-sm font-bold text-gray-500 hover:text-gray-800 dark:hover:text-white transition-colors"
-                >
-                  <FiArrowLeft /> Change Phone Number
-                </button>
-              </motion.form>
-            )}
-          </AnimatePresence>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-4 text-lg font-black shadow-2xl shadow-primary-500/20"
+              >
+                {isLoading ? 'Processing...' : 'Sign In'}
+              </Button>
+            </form>
 
           <motion.p 
             initial={{ opacity: 0 }}

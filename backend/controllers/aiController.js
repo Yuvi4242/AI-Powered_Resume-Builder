@@ -1,4 +1,53 @@
-const { generateSummary, generateBulletPoints, generateATSScore, suggestSkills } = require('../services/aiService');
+const { 
+  generateSummary, 
+  generateBulletPoints, 
+  generateATSScore, 
+  suggestSkills, 
+  optimizeResumeContent 
+} = require('../services/aiService');
+
+/**
+ * Controller to handle the complete AI resume generation and optimization
+ * @route POST /api/ai/generate
+ * @access Private (requires authentication)
+ */
+const generateResumeContentController = async (req, res) => {
+  console.log("AI route hit: /ai/generate", req.body);
+  try {
+    const { action, data, jobDescription } = req.body;
+
+    let result = null;
+
+    switch (action) {
+      case 'summary':
+        result = await generateSummary(data);
+        break;
+      case 'skills':
+        result = await suggestSkills(data.role);
+        break;
+      case 'optimize':
+        if (!jobDescription) {
+            return res.status(400).json({ success: false, message: 'Please provide a Job Description (JD)' });
+        }
+        result = await optimizeResumeContent(data, jobDescription);
+        break;
+      default:
+        return res.status(400).json({ success: false, message: 'Invalid AI action provided' });
+    }
+
+    res.status(200).json({
+      success: true,
+      result: result,
+    });
+  } catch (error) {
+    console.error('AI Strategy Controller Error:', error.message);
+    const statusCode = error.message === 'RATE_LIMIT_EXCEEDED' ? 429 : 500;
+    res.status(statusCode).json({
+      success: false,
+      message: error.message || 'AI request failed. Please try again later.',
+    });
+  }
+};
 
 /**
  * Controller to generate resume summary using AI
@@ -125,6 +174,7 @@ const skillSuggestionController = async (req, res) => {
 };
 
 module.exports = {
+  generateResumeContentController,
   generateSummaryController,
   bulletPointsController,
   atsScoreController,

@@ -16,6 +16,7 @@ import About from './pages/About';
 import Resources from './pages/Resources';
 import ResourceDetails from './pages/ResourceDetails';
 import { SearchProvider } from './context/SearchContext';
+import ChatWidget from './components/ChatWidget';
 
 // Protected Route wrapper
 const ProtectedRoute = ({ children, withLayout = true }) => {
@@ -31,7 +32,7 @@ const ProtectedRoute = ({ children, withLayout = true }) => {
 function App() {
   return (
     <SearchProvider>
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <div className="App">
           <Routes>
             <Route 
@@ -155,6 +156,8 @@ function App() {
               } 
             />
           </Routes>
+          {/* Resume Copilot — floating AI assistant (visible when logged in) */}
+          {localStorage.getItem('token') && <ChatWidget />}
         </div>
       </Router>
     </SearchProvider>

@@ -1,12 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const {
+  generateResumeContentController,
   generateSummaryController,
   bulletPointsController,
   atsScoreController,
   skillSuggestionController,
 } = require('../controllers/aiController');
 const { protect } = require('../middleware/authMiddleware');
+
+// Unified AI generation route
+router.post('/generate', protect, generateResumeContentController);
 
 // Public test route (for testing without auth)
 router.post('/test-summary', generateSummaryController);

@@ -6,37 +6,23 @@ const {
   getResumes,
   deleteResume,
   updateResume,
+  generateAISummary,
+  suggestAISkills,
+  antigravityOptimize,
 } = require('../controllers/resumeController');
 
-// All routes require authentication
+// Helper middleware for auth
 router.use(protect);
 
-/**
- * @route   POST /api/resume/save
- * @desc    Save a new resume
- * @access  Private
- */
+// AI Features
+router.post('/ai-summary', generateAISummary);
+router.post('/ai-skills', suggestAISkills);
+router.post('/ai-antigravity', antigravityOptimize);
+
+// CRUD operations
 router.post('/save', saveResume);
-
-/**
- * @route   GET /api/resume/all
- * @desc    Get all resumes for logged-in user
- * @access  Private
- */
 router.get('/all', getResumes);
-
-/**
- * @route   DELETE /api/resume/:id
- * @desc    Delete a resume
- * @access  Private
- */
 router.delete('/:id', deleteResume);
-
-/**
- * @route   PUT /api/resume/:id
- * @desc    Update a resume
- * @access  Private
- */
 router.put('/:id', updateResume);
 
 module.exports = router;

@@ -2,7 +2,6 @@ const User = require('../models/User');
 const Otp = require('../models/Otp');
 const jwt = require('jsonwebtoken');
 const { sendEmailOTP } = require('../services/emailService');
-const { sendSMSOTP, isTwilioConfigured } = require('../services/smsService');
 
 // Generate 6-digit OTP
 const generateOTP = () => {
@@ -17,33 +16,22 @@ const generateToken = (id) => {
 };
 
 // Save OTP to database
-const saveOTP = async (email, phone, otp) => {
-  // Delete existing OTPs for this email/phone
-  await Otp.deleteMany({
-    $or: [
-      { email },
-      { phone },
-    ],
-  });
+const saveOTP = async (email, otp) => {
+  // Delete existing OTPs for this email
+  await Otp.deleteMany({ email });
 
   // Create new OTP with 2-minute expiry
   const expiresAt = new Date(Date.now() + 2 * 60 * 1000);
   await Otp.create({
     email,
-    phone,
     otp,
     expiresAt,
   });
 };
 
 // Verify OTP
-const verifyOTP = async (email, phone, otp) => {
-  const otpRecord = await Otp.findOne({
-    $or: [
-      { email, otp },
-      { phone, otp },
-    ],
-  });
+const verifyOTP = async (email, otp) => {
+  const otpRecord = await Otp.findOne({ email, otp });
 
   if (!otpRecord) {
     return { valid: false, message: 'Invalid OTP' };
@@ -68,69 +56,44 @@ const verifyOTP = async (email, phone, otp) => {
 // @access  Public
 const signupOTP = async (req, res) => {
   try {
-    const { email, phone } = req.body;
+    const { email } = req.body;
 
-    if (!email && !phone) {
+    if (!email) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide email or phone',
+        message: 'Please provide email',
       });
     }
 
     // Check if user already exists
-    if (email) {
-      const existingEmail = await User.findOne({ email });
-      if (existingEmail) {
-        return res.status(400).json({
-          success: false,
-          message: 'Email already registered',
-        });
-      }
-    }
-
-    if (phone) {
-      const existingPhone = await User.findOne({ phone });
-      if (existingPhone) {
-        return res.status(400).json({
-          success: false,
-          message: 'Phone already registered',
-        });
-      }
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email already registered',
+      });
     }
 
     // Generate OTP
     const otp = generateOTP();
 
     // Save OTP to database
-    await saveOTP(email, phone, otp);
+    await saveOTP(email, otp);
 
     // Send OTP via email
-    if (email) {
-      try {
-        await sendEmailOTP(email, otp);
-      } catch (error) {
-        console.error('Email sending failed:', error.message);
-      }
-    }
-
-    // Send OTP via SMS
-    if (phone) {
-      try {
-        await sendSMSOTP(phone, otp);
-      } catch (error) {
-        console.error('SMS sending failed:', error.message);
-        if (!email) {
-          return res.status(500).json({
-            success: false,
-            message: 'Failed to send SMS verification code',
-          });
-        }
-      }
+    try {
+      await sendEmailOTP(email, otp);
+    } catch (error) {
+      console.error('Email sending failed:', error.message);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to send verification code to your email',
+      });
     }
 
     res.status(200).json({
       success: true,
-      message: 'Verification code sent successfully',
+      message: 'Verification code sent successfully to your email',
     });
   } catch (error) {
     console.error('Signup OTP Error:', error);
@@ -146,9 +109,9 @@ const signupOTP = async (req, res) => {
 // @access  Public
 const signupVerify = async (req, res) => {
   try {
-    const { name, email, phone, password, otp } = req.body;
+    const { name, email, password, otp } = req.body;
 
-    if (!name || !password || !otp) {
+    if (!name || !email || !password || !otp) {
       return res.status(400).json({
         success: false,
         message: 'Please provide all required fields',
@@ -156,7 +119,7 @@ const signupVerify = async (req, res) => {
     }
 
     // Verify OTP using database
-    const otpResult = await verifyOTP(email, phone, otp);
+    const otpResult = await verifyOTP(email, otp);
     if (!otpResult.valid) {
       return res.status(400).json({
         success: false,
@@ -168,7 +131,6 @@ const signupVerify = async (req, res) => {
     const user = await User.create({
       name,
       email,
-      phone,
       password,
       isVerified: true,
     });
@@ -184,7 +146,6 @@ const signupVerify = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        phone: user.phone,
       },
     });
   } catch (error) {
@@ -205,12 +166,12 @@ const signupVerify = async (req, res) => {
 // @access  Public
 const login = async (req, res) => {
   try {
-    const { email, phone, password } = req.body;
+    const { email, password } = req.body;
 
-    if (!email && !phone) {
+    if (!email) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide email or phone number',
+        message: 'Please provide email',
       });
     }
 
@@ -221,13 +182,8 @@ const login = async (req, res) => {
       });
     }
 
-    // Find user by email or phone
-    let user;
-    if (email) {
-      user = await User.findOne({ email: email.toLowerCase() });
-    } else if (phone) {
-      user = await User.findOne({ phone });
-    }
+    // Find user by email
+    const user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) {
       return res.status(401).json({
@@ -256,7 +212,6 @@ const login = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
-        phone: user.phone,
       },
     });
   } catch (error) {
@@ -277,22 +232,17 @@ const login = async (req, res) => {
 // @access  Public
 const forgotPassword = async (req, res) => {
   try {
-    const { email, phone } = req.body;
+    const { email } = req.body;
 
-    if (!email && !phone) {
+    if (!email) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide email or phone',
+        message: 'Please provide email',
       });
     }
 
     // Find user
-    let user;
-    if (email) {
-      user = await User.findOne({ email: email.toLowerCase() });
-    } else if (phone) {
-      user = await User.findOne({ phone });
-    }
+    const user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) {
       // Don't reveal if user exists
@@ -305,27 +255,14 @@ const forgotPassword = async (req, res) => {
     // Generate OTP
     const otp = generateOTP();
 
-    // Save OTP with type for password reset
-    await saveOTP(email, phone, otp);
+    // Save OTP
+    await saveOTP(email, otp);
 
     // Send OTP via email
-    if (email) {
-      try {
-        await sendEmailOTP(email, otp, 'Password Reset');
-      } catch (error) {
-        console.error('Email sending failed:', error.message);
-      }
-    }
-
-    // Send OTP via SMS
-    if (phone) {
-      if (isTwilioConfigured()) {
-        try {
-          await sendSMSOTP(phone, otp);
-        } catch (error) {
-          console.error('SMS sending failed:', error.message);
-        }
-      }
+    try {
+      await sendEmailOTP(email, otp, 'Password Reset');
+    } catch (error) {
+      console.error('Email sending failed:', error.message);
     }
 
     res.status(200).json({
@@ -346,7 +283,7 @@ const forgotPassword = async (req, res) => {
 // @access  Public
 const verifyResetOTP = async (req, res) => {
   try {
-    const { email, phone, otp } = req.body;
+    const { email, otp } = req.body;
 
     if (!otp) {
       return res.status(400).json({
@@ -355,15 +292,15 @@ const verifyResetOTP = async (req, res) => {
       });
     }
 
-    if (!email && !phone) {
+    if (!email) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide email or phone',
+        message: 'Please provide email',
       });
     }
 
     // Verify OTP
-    const otpResult = await verifyOTP(email, phone, otp);
+    const otpResult = await verifyOTP(email, otp);
     if (!otpResult.valid) {
       return res.status(400).json({
         success: false,
@@ -389,7 +326,7 @@ const verifyResetOTP = async (req, res) => {
 // @access  Public
 const resetPassword = async (req, res) => {
   try {
-    const { email, phone, newPassword } = req.body;
+    const { email, newPassword } = req.body;
 
     if (!newPassword) {
       return res.status(400).json({
@@ -405,20 +342,15 @@ const resetPassword = async (req, res) => {
       });
     }
 
-    if (!email && !phone) {
+    if (!email) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide email or phone',
+        message: 'Please provide email',
       });
     }
 
     // Find user
-    let user;
-    if (email) {
-      user = await User.findOne({ email: email.toLowerCase() });
-    } else if (phone) {
-      user = await User.findOne({ phone });
-    }
+    const user = await User.findOne({ email: email.toLowerCase() });
 
     if (!user) {
       return res.status(404).json({
@@ -444,117 +376,12 @@ const resetPassword = async (req, res) => {
   }
 };
 
-// ============================================
-// PHONE LOGIN FLOW (OTP-based)
-// ============================================
 
-// @route   POST /api/auth/login-otp
-// @desc    Send OTP to existing user for phone login
-// @access  Public
-const loginOTP = async (req, res) => {
-  try {
-    const { phone } = req.body;
-
-    if (!phone) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide a phone number',
-      });
-    }
-
-    // Check if user exists
-    const user = await User.findOne({ phone });
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'No account found with this phone number',
-      });
-    }
-
-    // Generate OTP
-    const otp = generateOTP();
-
-    // Save OTP to database
-    await saveOTP(null, phone, otp);
-
-    // Send SMS via Twilio Messaging API
-    try {
-      await sendSMSOTP(phone, otp);
-      res.status(200).json({
-        success: true,
-        message: 'Verification code sent to your phone',
-      });
-    } catch (error) {
-      console.error('sendSMSOTP failed:', error.message);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to send verification code: ' + error.message,
-      });
-    }
-  } catch (error) {
-    console.error('Login OTP Error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-    });
-  }
-};
-
-// @route   POST /api/auth/login-verify
-// @desc    Verify OTP and log in user
-// @access  Public
-const loginVerify = async (req, res) => {
-  try {
-    const { phone, otp } = req.body;
-
-    if (!phone || !otp) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide phone and verification code',
-      });
-    }
-
-    // Verify code via Database
-    const otpResult = await verifyOTP(null, phone, otp);
-    if (!otpResult.valid) {
-      return res.status(400).json({
-        success: false,
-        message: otpResult.message,
-      });
-    }
-
-    // Find user
-    const user = await User.findOne({ phone });
-    
-    // Generate token
-    const token = generateToken(user._id);
-
-    res.status(200).json({
-      success: true,
-      message: 'Login successful',
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-      },
-    });
-  } catch (error) {
-    console.error('Login Verify Error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-    });
-  }
-};
 
 module.exports = {
   signupOTP,
   signupVerify,
   login,
-  loginOTP,
-  loginVerify,
   forgotPassword,
   verifyResetOTP,
   resetPassword,
