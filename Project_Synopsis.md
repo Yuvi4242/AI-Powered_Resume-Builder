@@ -16,7 +16,7 @@
 
 In the contemporary competitive job market, an individual's resume serves as the critical first point of contact between prospective candidates and recruiters. Crafting a sophisticated, structurally sound, and strategically optimized resume is often a daunting task for job seekers, frequently resulting in missed opportunities due to poor formatting, lack of keyword optimization, or generic phrasing. This project introduces the "AI Resume Builder," a comprehensive, intelligent web application engineered to revolutionize the resume creation process. 
 
-Leveraging the power of cutting-edge Generative Artificial Intelligence (via Gemini API/Generative AI APIs), alongside a robust MERN-inspired stack comprising React.js, Node.js, Express.js, and MongoDB, this platform automates the generation of highly professional, role-specific resumes. The system is designed to take minimal user input—such as basic personal details, education, and professional experience—and autonomously generate compelling professional summaries, precisely articulated achievements, and contextually relevant skill sets. By providing intuitive, beautifully designed templates powered by Tailwind CSS, the AI Resume Builder ensures that the final output is not only rich in content but also aesthetically superior and ATS (Applicant Tracking System) friendly. The ultimate outcome of this project is a streamlined, user-centric application that significantly reduces the time and cognitive load required to build a standout resume, thereby empowering candidates to enhance their employability with unprecedented efficiency.
+Leveraging the power of cutting-edge Generative Artificial Intelligence (via Groq API / Llama-3 Models), alongside a robust MERN-inspired stack comprising React.js, Node.js, Express.js, and MongoDB, this platform automates the generation of highly professional, role-specific resumes. The system is designed to take minimal user input—such as basic personal details, education, and professional experience—and autonomously generate compelling professional summaries, precisely articulated achievements, and contextually relevant skill sets. By providing intuitive, beautifully designed templates powered by Tailwind CSS, the AI Resume Builder ensures that the final output is not only rich in content but also aesthetically superior and ATS (Applicant Tracking System) friendly. The ultimate outcome of this project is a streamlined, user-centric application that significantly reduces the time and cognitive load required to build a standout resume, thereby empowering candidates to enhance their employability with unprecedented efficiency.
 
 ---
 
@@ -90,7 +90,7 @@ To address the shortcomings of existing methodologies, the Proposed System intro
 
 This system represents a paradigm shift by utilizing a React.js frontend to deliver a highly responsive, single-page application (SPA) experience. When a user wishes to create a resume, they are guided through a structured data-entry process. Instead of forcing the user to draft entire paragraphs, the system prompts them for keywords, job titles, and basic duties. 
 
-This raw data is subsequently transmitted to the Express.js backend, which acts as a secure intermediary layer communicating with the Generative AI (Gemini/equivalent API). The AI processes the context, generates eloquently phrased professional content, and returns it to the frontend. The user can review, edit, or regenerate this content instantly. Concurrently, the React engine maps this polished data onto a customizable Tailwind CSS-styled template. By utilizing MongoDB, the system ensures that user profiles, generated documents, and template preferences are persistently stored, allowing users to pause their work and resume at their convenience from any device.
+This raw data is subsequently transmitted to the Express.js backend, which acts as a secure intermediary layer communicating with the Generative AI (Groq/equivalent API). The AI processes the context, generates eloquently phrased professional content, and returns it to the frontend. The user can review, edit, or regenerate this content instantly. Concurrently, the React engine maps this polished data onto a customizable Tailwind CSS-styled template. By utilizing MongoDB, the system ensures that user profiles, generated documents, and template preferences are persistently stored, allowing users to pause their work and resume at their convenience from any device.
 
 ---
 
@@ -101,7 +101,7 @@ The system is architected based on a modern, decoupled Client-Server model, heav
 - **Presentation Layer (Frontend):** Developed utilizing React.js, this layer is responsible for the entire visual interface and user state management. It utilizes React Router for seamless navigation between the dashboard, templates, and the builder tool itself. Component styling is handled dynamically via Tailwind CSS, ensuring responsiveness across desktops and tablets.
 - **Application Logic Layer (Backend):** Built on Node.js and Express.js, this layer serves as the central nervous system. It exposes RESTful API endpoints that the frontend consumes. It handles crucial business logic, including user authentication (via JWT), data validation, and crucially, managing secure, authenticated calls to the highly computationally intensive Generative AI APIs without exposing API keys to the client side.
 - **Data Persistence Layer (Database):** Hosted on MongoDB (typically via MongoDB Atlas), this NoSQL database is ideal for storing the highly nested, document-based JSON structures that characterize resume data (e.g., arrays of educational institutions, nested arrays of skills and experiences).
-- **External Services Layer:** The integration of the Generative AI API (e.g., Google Gemini). The backend server interacts with this API, sending engineered prompts paired with user data to receive optimized textual content.
+- **External Services Layer:** The integration of the Generative AI API (e.g., Groq Cloud). The backend server interacts with this API, sending engineered prompts paired with user data to receive optimized textual content.
 
 **Data Flow Sequence:**
 1. Client submits raw form data via React UI.
@@ -147,7 +147,7 @@ The project is built upon a robust, highly popular modern technology stack ensur
 - **Node.js:** An asynchronous event-driven JavaScript runtime designed to build scalable network applications. It allows the execution of JavaScript on the server side, unifying the stack language.
 - **Express.js:** A minimal and flexible Node.js web application framework that provides a robust set of features for web and mobile applications, specifically used here to rapidly build the RESTful API routing architecture.
 - **MongoDB:** A source-available cross-platform document-oriented database program. Classified as a NoSQL database program, MongoDB uses JSON-like documents with optional schemas, perfectly aligning with the fluid, hierarchical nature of resume data structures.
-- **Generative AI API (Gemini / OpenAI):** The external artificial intelligence engine accessed via API. These Large Language Models are fundamentally responsible for providing the natural language processing, contextual understanding, and intelligent text generation that sets this application apart from passive builders.
+- **Generative AI API (Groq / Llama-3):** The external artificial intelligence engine accessed via API. These Large Language Models are fundamentally responsible for providing the natural language processing, contextual understanding, and intelligent text generation that sets this application apart from passive builders.
 
 ---
 
@@ -222,7 +222,7 @@ The "AI Resume Builder" represents a significant technological leap forward in p
 2. **Node.js Foundation:** Node.js. (n.d.). *Node.js® is a JavaScript runtime built on Chrome's V8 JavaScript engine.* Retrieved from https://nodejs.org/
 3. **MongoDB Documentation:** MongoDB, Inc. (n.d.). *MongoDB: The developer data platform.* Retrieved from https://www.mongodb.com/
 4. **Tailwind CSS Documentation:** Tailwind Labs. (n.d.). *Tailwind CSS - Rapidly build modern websites without ever leaving your HTML.* Retrieved from https://tailwindcss.com/
-5. **OpenAI / Google Gemini API Reference:** Google DeepMind. (n.d.). *Generative AI API Documentation: Prompt Engineering and Text Generation.* Retrieved from official API developer portals.
+5. **Groq API Documentation:** Groq Inc. (n.d.). *Groq Cloud API Documentation: High-Performance Inference and Llama-3 Integration.* Retrieved from official developer portals.
 6. **Express.js Framework:** OpenJS Foundation. (n.d.). *Express - Node.js web application framework.* Retrieved from https://expressjs.com/
 7. Research on Applicant Tracking Systems (ATS): *How Applicant Tracking Systems Impact Recruitment*, Journal of Human Resources Technology, 2023.
 

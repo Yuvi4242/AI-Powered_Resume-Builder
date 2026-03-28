@@ -90,9 +90,10 @@ const Profile = () => {
     setIsAIGenerating(true);
     setStatus({ type: 'info', message: 'Magic is happening... 🪄' });
     try {
-      const response = await resumeAI.getSummary(profileData);
-      if (response.data.summary) {
-        setProfileData(prev => ({ ...prev, careerObjective: response.data.summary }));
+      const response = await resumeAI.generateSummary({ ...profileData, type: 'generate' });
+      if (response.data.success) {
+        const content = response.data?.data?.content || response.data?.content || '';
+        setProfileData(prev => ({ ...prev, careerObjective: content }));
         setStatus({ type: 'success', message: 'Summary generated with AI!' });
         setTimeout(() => setStatus({ type: '', message: '' }), 3000);
       }
@@ -120,14 +121,15 @@ const Profile = () => {
     setIsAIGenerating(true);
     setStatus({ type: 'info', message: 'Optimizing your impact... 🚀' });
     try {
-      // For experience, we'll use the Antigravity logic (simplified for single role)
-      const response = await resumeAI.optimizeJD(
+      // For experience, we'll use the optimization logic
+      const response = await resumeAI.optimizeForJD(
         [exp.description || ''], 
         `Role: ${exp.role}`
       );
-      if (response.data.optimizedPoints) {
+      if (response.data.success) {
+        const content = response.data?.data?.content || response.data?.content || '';
         const updated = [...profileData.experiences];
-        updated[index].description = response.data.optimizedPoints.join('\n');
+        updated[index].description = Array.isArray(content) ? content.join('\n') : content;
         setProfileData(prev => ({ ...prev, experiences: updated }));
         setStatus({ type: 'success', message: 'Experience optimized with AI!' });
         setTimeout(() => setStatus({ type: '', message: '' }), 3000);

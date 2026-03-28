@@ -12,7 +12,7 @@ const iconMap = {
   FiMessageSquare: FiMessageSquare
 };
 
-const DynamicForm = ({ schema, formData, onChange }) => {
+const DynamicForm = ({ schema, formData, onChange, onAIAssist, activeAIField }) => {
   const [activeSection, setActiveSection] = useState(schema.sections[0]?.id || '');
 
   const handleToggle = (id) => {
@@ -62,12 +62,16 @@ const DynamicForm = ({ schema, formData, onChange }) => {
                         section={section} 
                         values={formData[section.id] || []} 
                         onChange={handleFieldChange} 
+                        onAIAssist={onAIAssist}
+                        activeAIField={activeAIField}
                       />
                     ) : section.type === 'tags' ? (
                       <TagsField 
                         section={section} 
                         value={formData[section.id] || ''} 
                         onChange={handleFieldChange} 
+                        onAIAssist={onAIAssist}
+                        activeAIField={activeAIField}
                       />
                     ) : (
                       <div className="space-y-4">
@@ -77,6 +81,8 @@ const DynamicForm = ({ schema, formData, onChange }) => {
                             field={field} 
                             value={formData[field.name]} 
                             onChange={handleFieldChange} 
+                            onAIAssist={onAIAssist}
+                            activeAIField={activeAIField}
                           />
                         ))}
                       </div>

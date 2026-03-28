@@ -17,7 +17,7 @@ const About = () => {
 
         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Core Features</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-          {['Gemini-Powered Smart Summaries', 'Role-based Action Bullets', 'ATS Formatting Optimization', 'Dynamic Styling Templates', 'Instant PDF/Live Export', 'Skill Match Validations'].map((feature, i) => (
+          {['Groq-Powered Smart Summaries', 'Role-based Action Bullets', 'ATS Formatting Optimization', 'Dynamic Styling Templates', 'Instant PDF/Live Export', 'Skill Match Validations'].map((feature, i) => (
             <div key={i} className="flex items-center gap-3 text-gray-700 dark:text-gray-300 font-medium">
               <FiCheckCircle className="text-primary-500 shrink-0" /> {feature}
             </div>
@@ -28,7 +28,7 @@ const About = () => {
           <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
             <FiCpu className="w-6 h-6 text-primary-500 mx-auto mb-3" />
             <p className="font-bold text-gray-900 dark:text-white text-sm">LLM Engine</p>
-            <p className="text-xs text-gray-500">Gemini Pro API</p>
+            <p className="text-xs text-gray-500">Groq (Llama-3.3)</p>
           </div>
           <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
             <FiCode className="w-6 h-6 text-primary-500 mx-auto mb-3" />

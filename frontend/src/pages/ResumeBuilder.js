@@ -37,6 +37,7 @@ const ResumeBuilder = () => {
   const [photoPreview, setPhotoPreview] = useState(null);
 
   const [isGenerating, setIsGenerating] = useState(false);
+  const [activeAIField, setActiveAIField] = useState(null); // Track which field is currently being assisted by AI
   const [isSaving, setIsSaving] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -160,25 +161,48 @@ const ResumeBuilder = () => {
     finally { setIsDownloading(false); }
   };
 
-  const handleGenerateSummary = async () => {
-    const hasExperience = Array.isArray(formData.experience) ? formData.experience.length > 0 : !!formData.experience;
-    if (!formData.skills || !hasExperience) { setError('Please enter both skills and experience'); return; }
-    console.log("Calling AI API (Summary)...", formData);
-    setIsGenerating(true); setError(''); setAiMode(null);
+  const handleFieldAI = async (fieldName, action = 'generate') => {
+    setActiveAIField(fieldName);
+    setError('');
+    
     try {
-      const response = await aiAPI.generateSummary(formData);
-      console.log("AI Summary Response:", response.data);
+      let response;
+      const currentText = formData[fieldName] || '';
+      
+      switch (fieldName) {
+        case 'summary':
+          response = await aiAPI.generateSummary({ ...formData, type: currentText ? 'improve' : 'generate' });
+          break;
+        case 'experience':
+        case 'projects':
+        case 'achievements':
+          response = await aiAPI.generate('text-tool', { text: currentText, type: 'impact' });
+          break;
+        case 'skills':
+          response = await aiAPI.suggestSkills({ role: formData.currentRole || formData.jobTitle || 'Professional' });
+          break;
+        default:
+          response = await aiAPI.processText(currentText, 'professional');
+      }
+
       if (response.data.success) {
-        setFormData((prev) => ({ ...prev, summary: response.data.result }));
-        setAiMode('Gemini AI');
-        
-        // Track AI Generation
-        const currentCount = parseInt(localStorage.getItem('ai_generations_count') || '0');
-        localStorage.setItem('ai_generations_count', (currentCount + 1).toString());
+        const content = response.data?.data?.content || response.data?.content || '';
+        if (content) {
+          setFormData(prev => ({ ...prev, [fieldName]: content }));
+          setSuccessMessage(`${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} updated by AI!`);
+          setTimeout(() => setSuccessMessage(''), 3000);
+        }
       }
     } catch (err) {
-      setError('Failed to generate summary with AI. Please try again.');
-    } finally { setIsGenerating(false); }
+      console.error(`AI Assist Error for ${fieldName}:`, err);
+      setError(`AI could not process ${fieldName}. Please try again.`);
+    } finally {
+      setActiveAIField(null);
+    }
+  };
+
+  const handleGenerateSummary = async () => {
+    handleFieldAI('summary');
   };
 
   const handleCheckATS = async () => {
@@ -202,11 +226,14 @@ const ResumeBuilder = () => {
         stringifySection(formData.projects)
       ].join('\n\n');
 
-      const response = await aiAPI.checkATSScore({ resumeText });
+      const response = await aiAPI.checkATS(resumeText);
       console.log("AI ATS Response:", response.data);
       if (response.data.success) {
-        setAtsScore(response.data.result);
-        setAtsSuggestions(response.data.suggestions);
+        const score = response.data?.data?.score ?? response.data?.score ?? response.data?.result;
+        const suggestions = response.data?.data?.suggestions ?? response.data?.suggestions ?? [];
+        const sArr = Array.isArray(suggestions) ? suggestions : [];
+        setAtsScore(typeof score === 'number' ? score : 0);
+        setAtsSuggestions(sArr);
         setSuccessMessage('ATS Analysis complete!');
       }
     } catch (err) {
@@ -222,7 +249,10 @@ const ResumeBuilder = () => {
       const response = await aiAPI.suggestSkills({ role: jobTitle });
       console.log("AI Skills Response:", response.data);
       if (response.data.success) {
-        setSuggestedSkills(response.data.result);
+        const content = response.data?.data?.content ?? response.data?.content ?? '';
+        // If it's a list, we might need to parse it, but for now we assume it's a string or handled by the backend
+        const skills = typeof content === 'string' ? content : JSON.stringify(content);
+        setSuggestedSkills(skills.split(',').map(s => s.trim()));
       }
     } catch (err) {
       setError('Failed to suggest skills.');
@@ -234,13 +264,12 @@ const ResumeBuilder = () => {
     console.log("Calling AI API (Bullet Points)...", jobTitle);
     setIsGeneratingBullets(true);
     try {
-      const response = await aiAPI.generateBulletPoints({ jobTitle });
+      const response = await aiAPI.generateBullets({ jobTitle });
       console.log("AI Bullet Points Response:", response.data);
       if (response.data.success) {
-        setBulletPoints(response.data.result);
-        // Track AI Generation
-        const currentCount = parseInt(localStorage.getItem('ai_generations_count') || '0');
-        localStorage.setItem('ai_generations_count', (currentCount + 1).toString());
+        const content = response.data?.data?.content ?? response.data?.content ?? '';
+        const points = typeof content === 'string' ? content.split('\n').map(p => p.replace(/^- /, '').trim()) : content;
+        setBulletPoints(Array.isArray(points) ? points : []);
       }
     } catch (err) { 
       setBulletPoints([
@@ -248,9 +277,6 @@ const ResumeBuilder = () => {
         "Collaborated natively across 4 product disciplines aligning executive expectations.",
         "Authored stringent API endpoints securing downstream client processing loops."
       ]);
-      // Track AI Generation
-      const currentCount = parseInt(localStorage.getItem('ai_generations_count') || '0');
-      localStorage.setItem('ai_generations_count', (currentCount + 1).toString());
     }
     finally { setIsGeneratingBullets(false); }
   };
@@ -387,6 +413,8 @@ const ResumeBuilder = () => {
                   schema={schema} 
                   formData={formData} 
                   onChange={handleChange} 
+                  onAIAssist={handleFieldAI}
+                  activeAIField={activeAIField}
                 />
               );
             })()}

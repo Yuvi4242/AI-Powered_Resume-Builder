@@ -1,10 +1,9 @@
+require('./config/env'); // must be first
+
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const dotenv = require('dotenv');
-
-// Load environment variables immediately
-dotenv.config({ path: path.join(__dirname, '.env') });
+const { isDev } = require('./config/env');
 
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
@@ -14,13 +13,15 @@ const resumeRoutes = require('./routes/resumeRoutes');
 const userRoutes = require('./routes/userRoutes');
 const { sendTestEmail } = require('./services/emailService');
 
-console.log('=== Environment Variables ===');
-console.log('PORT:', process.env.PORT || 'not set (default 5000)');
-console.log('MONGO_URI:', process.env.MONGO_URI ? 'set' : 'not set');
-console.log('EMAIL_USER:', process.env.EMAIL_USER ? 'set' : 'not set');
-console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? 'set' : 'not set');
-console.log('GEMINI_API_KEY:', process.env.GEMINI_API_KEY ? 'set - ' + process.env.GEMINI_API_KEY.substring(0, 10) + '...' : 'not set');
-console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'set' : 'not set');
+if (isDev) {
+  console.log('=== Environment Variables (sanitized) ===');
+  console.log('PORT:', process.env.PORT || 'not set (default 5000)');
+  console.log('MONGO_URI:', process.env.MONGO_URI ? 'set' : 'not set');
+  console.log('EMAIL_USER:', process.env.EMAIL_USER ? 'set' : 'not set');
+  console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? 'set' : 'not set');
+  console.log('GROQ_API_KEY:', process.env.GROQ_API_KEY ? 'set' : 'not set');
+  console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'set' : 'not set');
+}
 
 // Connect to MongoDB
 connectDB();
@@ -30,7 +31,19 @@ const app = express();
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
+
+// Handle malformed JSON bodies cleanly
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid JSON in request body.',
+      error: { code: 'INVALID_JSON' },
+    });
+  }
+  return next(err);
+});
 
 // Test route - send test email
 app.get('/api/test-email', async (req, res) => {
@@ -43,20 +56,20 @@ app.get('/api/test-email', async (req, res) => {
   res.json(result);
 });
 
-// Test route - Gemini API (no auth)
-app.get('/api/test-gemini', async (req, res) => {
+// Test route - Groq API (no auth)
+app.get('/api/test-groq', async (req, res) => {
   try {
-    const { generateSummary } = require('./services/aiService');
-    console.log('\n=== TEST GEMINI API ===');
-    const summary = await generateSummary({ 
+    const aiService = require('./services/aiService');
+    console.log('\n=== TEST GROQ API ===');
+    const result = await aiService.generateSummary({ 
       name: 'Test User', 
       skills: 'React, Node.js', 
       experience: 'Built web apps for 3 years',
       projects: 'AI Resume Builder'
     });
-    res.json({ success: true, summary });
+    res.json(result);
   } catch (error) {
-    console.error('Gemini Test Error:', error.message);
+    console.error('Groq Test Error:', error.message);
     res.status(500).json({ success: false, message: error.message });
   }
 });
@@ -108,24 +121,20 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server with dynamic port handling
-const startServer = (port) => {
-  const server = app.listen(port, () => {
-    console.log(`✅ Server running on port ${port}`);
-  });
+// Start server (production-safe: do not silently change ports)
+const port = parseInt(process.env.PORT, 10) || 5000;
+const server = app.listen(port, () => {
+  console.log(`✅ Server running on port ${port}`);
+});
 
-  server.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-      console.log(`⚠️  Port ${port} is busy, trying port ${port + 1}...`);
-      startServer(port + 1);
-    } else {
-      console.error('❌ Server error:', err);
-    }
-  });
-};
-
-// Start server
-const initialPort = parseInt(process.env.PORT) || 5000;
-startServer(initialPort);
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${port} is already in use. Stop the other process and restart.`);
+    process.exit(1);
+  } else {
+    console.error('❌ Server error:', err);
+    process.exit(1);
+  }
+});
 
 module.exports = app;

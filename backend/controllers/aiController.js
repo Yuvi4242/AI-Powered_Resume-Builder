@@ -1,182 +1,76 @@
-const { 
-  generateSummary, 
-  generateBulletPoints, 
-  generateATSScore, 
-  suggestSkills, 
-  optimizeResumeContent 
-} = require('../services/aiService');
+/**
+ * aiController.js
+ * AI Controller - UNIFIED HANDLER for Groq-based generation.
+ * Process all AI-related actions: summary, experience, skills, projects, etc.
+ */
+
+const aiService = require('../services/aiService');
+const { fail } = require('../utils/apiResponse');
 
 /**
- * Controller to handle the complete AI resume generation and optimization
+ * Universal controller method that handles all AI generation by action.
  * @route POST /api/ai/generate
- * @access Private (requires authentication)
  */
-const generateResumeContentController = async (req, res) => {
-  console.log("AI route hit: /ai/generate", req.body);
+const generateAIByAction = async (req, res) => {
+  const { action, ...options } = req.body;
+  
   try {
-    const { action, data, jobDescription } = req.body;
-
-    let result = null;
-
-    switch (action) {
-      case 'summary':
-        result = await generateSummary(data);
-        break;
-      case 'skills':
-        result = await suggestSkills(data.role);
-        break;
-      case 'optimize':
-        if (!jobDescription) {
-            return res.status(400).json({ success: false, message: 'Please provide a Job Description (JD)' });
-        }
-        result = await optimizeResumeContent(data, jobDescription);
-        break;
-      default:
-        return res.status(400).json({ success: false, message: 'Invalid AI action provided' });
+    const result = await aiService.generate(action, options);
+    
+    if (!result.success) {
+      return res.status(result.error ? 400 : 500).json(result);
     }
 
-    res.status(200).json({
-      success: true,
-      result: result,
-    });
+    return res.status(200).json(result);
   } catch (error) {
-    console.error('AI Strategy Controller Error:', error.message);
-    const statusCode = error.message === 'RATE_LIMIT_EXCEEDED' ? 429 : 500;
-    res.status(statusCode).json({
-      success: false,
-      message: error.message || 'AI request failed. Please try again later.',
-    });
+    console.error('[AIController Error]:', error.message);
+    return fail(res, 500, 'Unexpected error during AI generation.');
   }
 };
 
 /**
- * Controller to generate resume summary using AI
- * @route POST /api/ai/generate-summary
- * @access Private (requires authentication)
+ * Controller to generate / improve resume summary
+ * @route POST /api/ai/summary
  */
 const generateSummaryController = async (req, res) => {
-  console.log("AI route hit: /summary", req.body);
-  try {
-    const { data } = req.body;
-    const summary = await generateSummary(data);
-
-    res.status(200).json({
-      success: true,
-      result: summary,
-    });
-  } catch (error) {
-    console.error('Generate Summary Controller Error:', error.message);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to generate summary',
-    });
-  }
+  const data = req.body?.data || req.body || {};
+  const result = await aiService.generate('summary', data);
+  return res.status(result.success ? 200 : 500).json(result);
 };
 
 /**
- * Controller to generate bullet points for a job title
+ * Controller to generate bullet points
  * @route POST /api/ai/bullet-points
- * @access Private (requires authentication)
  */
 const bulletPointsController = async (req, res) => {
-  console.log("AI route hit: /bullet-points", req.body);
-  try {
-    const { data } = req.body;
-    const { jobTitle } = data || {};
-
-    if (!jobTitle) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide a job title',
-      });
-    }
-
-    const points = await generateBulletPoints(jobTitle);
-
-    res.status(200).json({
-      success: true,
-      result: points,
-    });
-  } catch (error) {
-    console.error('Bullet Points Controller Error:', error.message);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to generate bullet points',
-    });
-  }
+  const data = req.body?.data || req.body || {};
+  const result = await aiService.generate('experience', data);
+  return res.status(result.success ? 200 : 500).json(result);
 };
 
 /**
- * Controller to check ATS score
- * @route POST /api/ai/ats-score
- * @access Private (requires authentication)
- */
-const atsScoreController = async (req, res) => {
-  console.log("AI route hit: /ats", req.body);
-  try {
-    const { data } = req.body;
-    const { resumeText } = data || {};
-
-    if (!resumeText) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide resume text',
-      });
-    }
-
-    const result = await generateATSScore(resumeText);
-
-    res.status(200).json({
-      success: true,
-      result: result.score,
-      suggestions: result.suggestions,
-    });
-  } catch (error) {
-    console.error('ATS Score Controller Error:', error.message);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to analyze resume',
-    });
-  }
-};
-
-/**
- * Controller to suggest skills for a role
- * @route POST /api/ai/suggest-skills
- * @access Private (requires authentication)
+ * Controller to suggest skills
+ * @route POST /api/ai/skills
  */
 const skillSuggestionController = async (req, res) => {
-  console.log("AI route hit: /skills", req.body);
-  try {
-    const { data } = req.body;
-    const { role } = data || {};
+  const data = req.body?.data || req.body || {};
+  const result = await aiService.generate('skills', data);
+  return res.status(result.success ? 200 : 500).json(result);
+};
 
-    if (!role) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide a job role',
-      });
-    }
-
-    const skills = await suggestSkills(role);
-
-    res.status(200).json({
-      success: true,
-      result: skills,
-    });
-  } catch (error) {
-    console.error('Skill Suggestion Controller Error:', error.message);
-    res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to suggest skills',
-    });
-  }
+/**
+ * Controller for general text tools (grammar, rewrite, etc.)
+ * @route POST /api/ai/text-tool
+ */
+const runTextToolController = async (req, res) => {
+  const result = await aiService.generate('text-tool', req.body);
+  return res.status(result.success ? 200 : 500).json(result);
 };
 
 module.exports = {
-  generateResumeContentController,
+  generateAIByAction,
   generateSummaryController,
   bulletPointsController,
-  atsScoreController,
   skillSuggestionController,
+  runTextToolController,
 };

@@ -1,47 +1,57 @@
-const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { getBearerTokenFromRequest, verifyAccessToken } = require('../utils/jwt');
+const { isDev } = require('../config/env');
 
 // @desc    Protect routes - verify JWT token
 // @access  Private
 const protect = async (req, res, next) => {
-  let token;
-
-  // Check for Bearer token in Authorization header
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
-    try {
-      // Get token from header (Bearer <token>)
-      token = req.headers.authorization.split(' ')[1];
-
-      // Verify token
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      // Get user from token
-      req.user = await User.findById(decoded.id).select('-password');
-
-      if (!req.user) {
-        return res.status(401).json({
-          success: false,
-          message: 'User not found',
-        });
-      }
-
-      next();
-    } catch (error) {
-      console.error('Auth Middleware Error:', error);
-      return res.status(401).json({
-        success: false,
-        message: 'Unauthorized - Invalid token',
-      });
-    }
-  }
-
+  const token = getBearerTokenFromRequest(req);
   if (!token) {
     return res.status(401).json({
       success: false,
       message: 'Unauthorized - No token provided',
+      error: { code: 'AUTH_NO_TOKEN' },
+    });
+  }
+
+  try {
+    const decoded = verifyAccessToken(token);
+    req.user = await User.findById(decoded.id).select('-password');
+
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized - User not found',
+        error: { code: 'AUTH_USER_NOT_FOUND' },
+      });
+    }
+
+    return next();
+  } catch (error) {
+    const name = error?.name;
+    const code =
+      name === 'TokenExpiredError' ? 'AUTH_TOKEN_EXPIRED' :
+      name === 'JsonWebTokenError' ? 'AUTH_TOKEN_INVALID' :
+      error?.code === 'JWT_SECRET_MISSING' ? 'AUTH_SERVER_MISCONFIG' :
+      'AUTH_UNAUTHORIZED';
+
+    if (isDev) {
+      console.warn('[auth] token verification failed', {
+        code,
+        name,
+        message: error?.message,
+        path: req.originalUrl,
+        method: req.method,
+      });
+    }
+
+    return res.status(401).json({
+      success: false,
+      message:
+        code === 'AUTH_TOKEN_EXPIRED' ? 'Unauthorized - Token expired' :
+        code === 'AUTH_TOKEN_INVALID' ? 'Unauthorized - Invalid token' :
+        'Unauthorized',
+      error: { code },
     });
   }
 };

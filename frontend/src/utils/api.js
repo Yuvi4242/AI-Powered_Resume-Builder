@@ -1,6 +1,10 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api/';
+// In production, prefer relative "/api/" (same origin).
+// In development, allow override via REACT_APP_API_BASE_URL.
+const API_BASE_URL =
+  process.env.REACT_APP_API_BASE_URL ||
+  (window?.location?.hostname ? `${window.location.protocol}//${window.location.hostname}:5000/api/` : 'http://localhost:5000/api/');
 
 // Create axios instance with default config
 const api = axios.create({
@@ -37,44 +41,76 @@ api.interceptors.response.use(
   }
 );
 
-// Auth API
+// Token management
+export const setToken = (token) => {
+  if (token) localStorage.setItem('token', token);
+  else localStorage.removeItem('token');
+};
+
+export const removeToken = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+};
+
+/**
+ * Auth API
+ */
 export const authAPI = {
-  // OTP-based signup
   signupOTP: (data) => api.post('auth/signup-otp', data),
   signupVerify: (data) => api.post('auth/signup-verify', data),
-  
-  // Password-based login
   login: (credentials) => api.post('auth/login', credentials),
-  
-  // Forgot password
   forgotPassword: (data) => api.post('auth/forgot-password', data),
   verifyResetOTP: (data) => api.post('auth/verify-reset-otp', data),
   resetPassword: (data) => api.post('auth/reset-password', data),
 };
-// AI-Powered Resume API (new endpoint names)
-export const resumeAI = {
-  getSummary:  (profileData)                  => api.post('resume/ai-summary',     { profileData }),
-  getSkills:   (role)                         => api.post('resume/ai-skills',      { role }),
-  optimizeJD:  (bulletPoints, jobDescription) => api.post('resume/ai-antigravity', { bulletPoints, jobDescription }),
-};
 
-// Legacy aiAPI alias — keeps AIToolsDashboard.js and ResumeBuilder.js working
+/**
+ * Unified AI API - Standardized for all Tools
+ * Every method returns data in the shape: { success, message, data: { content }, meta }
+ */
 export const aiAPI = {
-  generateSummary:     (data) => api.post('resume/ai-summary',     { profileData: data }),
-  checkATSScore:       (data) => api.post('resume/ai-skills',      { role: data.resumeText?.split(' ').slice(0, 5).join(' ') || 'Software Engineer' }),
-  generateBulletPoints:(data) => api.post('resume/ai-antigravity', { bulletPoints: [data.jobTitle || ''], jobDescription: data.jobTitle || '' }),
-  suggestSkills:       (data) => api.post('resume/ai-skills',      { role: data.role }),
+  // Generic caller
+  generate: (action, data) => api.post('ai/generate', { action, ...data }),
+
+  // Summary Tools
+  generateSummary: (data) => api.post('ai/summary/generate', data),
+  improveSummary:  (data) => api.post('ai/summary/improve', data),
+
+  // Experience Tools
+  generateBullets: (data) => api.post('ai/experience/generate', data),
+  improveExperience: (data) => api.post('ai/experience/improve', data),
+
+  // Project Tools
+  generateProject: (data) => api.post('ai/generate', { action: 'project', ...data }),
+
+  // Skills Tools
+  suggestSkills: (data) => api.post('ai/skills/suggest', data),
+
+  // Text Tools
+  processText: (text, type) => api.post('ai/text-tool', { text, type }),
+  rewrite:     (text)       => api.post('ai/text/rewrite', { text }),
+  fixGrammar:  (text)       => api.post('ai/text/grammar-fix', { text }),
+
+  // Optimization
+  optimizeForJD: (resumeData, jobDescription) => api.post('ai/optimize', { resumeData, jobDescription }),
+  checkATS:      (resumeText)                 => api.post('ai/ats', { resumeText }),
+
+  // Legacy/Compatibility Layer (kept to avoid immediate breakage in other components)
+  generateBulletPoints: (data) => api.post('ai/bullet-points', { data }),
 };
 
-// Resume Copilot API
+/**
+ * Resume Copilot API (Chat-specific)
+ */
 export const copilotAPI = {
-  chat:            (message)                => api.post('ai/chat',             { message }),
-  fillProfile:     (text)                   => api.post('ai/fill-profile',      { text }),
-  generateSummary: (role, skills, exp)      => api.post('ai/generate-summary',  { role, skills, experience: exp }),
-  improveResume:   (resumeData, jobDesc)    => api.post('ai/improve-resume',    { resumeData, jobDescription: jobDesc }),
+  chat:            (message, resumeData = {}, history = []) => api.post('ai/chat', { message, resumeData, history }),
+  fillProfile:     (text)    => api.post('ai/fill-profile', { text }),
+  improveResume:   (resumeData, jobDescription = '') => api.post('ai/improve-resume', { resumeData, jobDescription }),
 };
 
-// Resume API
+/**
+ * Resume CRUD API
+ */
 export const resumeAPI = {
   saveResume: (data) => api.post('resume/save', data),
   getResumes: () => api.get('resume/all'),
@@ -82,7 +118,9 @@ export const resumeAPI = {
   updateResume: (id, data) => api.put(`resume/${id}`, data),
 };
 
-// Profile API
+/**
+ * Profile API
+ */
 export const profileAPI = {
   getProfile: () => api.get('profile/me'),
   updateProfile: (data) => api.put('profile/update', data),
@@ -91,18 +129,7 @@ export const profileAPI = {
   }),
 };
 
-// Helper to get token
-export const getToken = () => localStorage.getItem('token');
-
-// Helper to set token
-export const setToken = (token) => {
-  localStorage.setItem('token', token);
-};
-
-// Helper to remove token
-export const removeToken = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-};
+// Legacy Compatibility Aliases
+export const resumeAI = aiAPI;
 
 export default api;

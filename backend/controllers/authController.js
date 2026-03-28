@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const Otp = require('../models/Otp');
-const jwt = require('jsonwebtoken');
 const { sendEmailOTP } = require('../services/emailService');
+const { signAccessToken } = require('../utils/jwt');
 
 // Generate 6-digit OTP
 const generateOTP = () => {
@@ -10,9 +10,7 @@ const generateOTP = () => {
 
 // Generate JWT token
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: '7d',
-  });
+  return signAccessToken({ id }, { expiresIn: '7d' });
 };
 
 // Save OTP to database

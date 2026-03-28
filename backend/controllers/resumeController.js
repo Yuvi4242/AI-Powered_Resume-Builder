@@ -1,9 +1,6 @@
 const Resume = require('../models/Resume');
-const {
-  generateResumeSummary,
-  suggestSkillsForRole,
-  antigravityOptimize,
-} = require('../services/geminiService');
+const aiService = require('../services/aiService');
+const { antigravityOptimize } = require('../services/geminiService');
 
 // ============================================================
 // AI ENDPOINTS
@@ -20,13 +17,24 @@ const generateAISummary = async (req, res) => {
       return res.status(400).json({ success: false, message: 'profileData is required.' });
     }
 
-    const summary = await generateResumeSummary({
-      role:              profileData.currentRole || profileData.jobTitle || 'Professional',
-      skills:            profileData.technicalSkills || [],
-      yearsOfExperience: profileData.experienceLevel || '',
+    const out = await aiService.generate('summary', {
+      role: profileData.currentRole || profileData.jobTitle || profileData.role || 'Professional',
+      skills: profileData.technicalSkills || (typeof profileData.skills === 'string' ? profileData.skills.split(',') : profileData.skills) || [],
+      experience: profileData.experienceLevel || '',
+      type: 'generate'
     });
 
-    res.status(200).json({ success: true, summary });
+    if (!out.success) throw new Error(out.error || 'AI Generation failed');
+
+    res.status(200).json({
+      success: true,
+      summary: out.text,
+      result: out.text,
+      mode: out.meta.usedFallback ? 'fallback' : 'gemini',
+      provider: out.meta.usedFallback ? 'fallback' : 'gemini',
+      usedFallback: out.meta.usedFallback,
+      meta: out.meta,
+    });
   } catch (error) {
     console.error('[AI Summary Error]', error.message);
     const status = error.message?.includes('429') ? 429 : 500;
@@ -50,8 +58,18 @@ const suggestAISkills = async (req, res) => {
       return res.status(400).json({ success: false, message: 'role is required.' });
     }
 
-    const skills = await suggestSkillsForRole(role);
-    res.status(200).json({ success: true, skills });
+    const out = await aiService.generate('skills', { role, type: 'suggest' });
+    if (!out.success) throw new Error(out.error || 'AI Generation failed');
+
+    res.status(200).json({
+      success: true,
+      skills: typeof out.text === 'string' ? out.text.split(',').map(s => s.trim()) : [],
+      result: out.text,
+      mode: out.meta.usedFallback ? 'fallback' : 'gemini',
+      provider: out.meta.usedFallback ? 'fallback' : 'gemini',
+      usedFallback: out.meta.usedFallback,
+      meta: out.meta,
+    });
   } catch (error) {
     console.error('[AI Skills Error]', error.message);
     const status = error.message?.includes('429') ? 429 : 500;
@@ -71,11 +89,46 @@ const antigravityOptimizeHandler = async (req, res) => {
     }
 
     const optimizedPoints = await antigravityOptimize(bulletPoints, jobDescription);
-    res.status(200).json({ success: true, optimizedPoints });
+    res.status(200).json({
+      success: true,
+      optimizedPoints,
+      points: optimizedPoints, // legacy
+      result: optimizedPoints, // legacy
+      mode: 'gemini',
+      provider: 'gemini',
+      usedFallback: false,
+    });
   } catch (error) {
     console.error('[Antigravity Error]', error.message);
-    const status = error.message?.includes('429') ? 429 : 500;
-    res.status(status).json({ success: false, message: 'Antigravity optimization unavailable.' });
+    // Deterministic fallback: keyword-match reorder (never fails hard)
+    try {
+      const { bulletPoints, jobDescription } = req.body;
+      const jd = String(jobDescription || '').toLowerCase();
+      const jdWords = new Set(jd.split(/[^a-z0-9+]+/g).filter((w) => w.length >= 4).slice(0, 120));
+      const scored = (Array.isArray(bulletPoints) ? bulletPoints : [bulletPoints]).map((bp) => {
+        const text = String(bp || '');
+        const words = text.toLowerCase().split(/[^a-z0-9+]+/g).filter(Boolean);
+        let score = 0;
+        for (const w of words) if (jdWords.has(w)) score += 1;
+        return { text, score };
+      });
+      scored.sort((a, b) => b.score - a.score);
+      const optimizedPoints = scored.map((s) => s.text);
+
+      res.status(200).json({
+        success: true,
+        optimizedPoints,
+        points: optimizedPoints,
+        result: optimizedPoints,
+        mode: 'fallback',
+        provider: 'fallback',
+        usedFallback: true,
+        message: 'Gemini unavailable; used fallback optimization.',
+      });
+    } catch {
+      const status = error.message?.includes('429') ? 429 : 500;
+      res.status(status).json({ success: false, message: 'Antigravity optimization unavailable.' });
+    }
   }
 };
 

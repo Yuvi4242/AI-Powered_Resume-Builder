@@ -4,6 +4,34 @@ import { FiFileText, FiCheck, FiBriefcase, FiAward, FiAlertCircle, FiZap, FiLoad
 import AIToolCard from '../components/AIToolCard';
 import { aiAPI } from '../utils/api';
 
+const DEV_LOG = process.env.NODE_ENV !== 'production';
+
+const pickText = (payload) => {
+  const text =
+    payload?.data?.data?.content ??
+    payload?.data?.content ??
+    payload?.data?.data?.text ??
+    payload?.data?.text ??
+    payload?.data?.data?.summary ??
+    payload?.data?.result;
+  return typeof text === 'string' ? text.trim() : '';
+};
+
+const pickMode = (payload) => payload?.data?.data?.source || payload?.data?.provider || payload?.data?.mode;
+
+const pickArray = (payload, key) => {
+  const v =
+    payload?.data?.data?.content ??
+    payload?.data?.content ??
+    payload?.data?.data?.[key] ??
+    payload?.data?.[key] ??
+    payload?.data?.result;
+  
+  if (Array.isArray(v)) return v.filter(Boolean);
+  if (typeof v === 'string') return v.split(',').map(s => s.trim()).filter(Boolean);
+  return [];
+};
+
 const tools = [
   {
     id: 'summary',
@@ -64,11 +92,17 @@ const AIToolsDashboard = () => {
     }
     setLoading(true); setError(''); setSuccessMode(null); setSummaryResult('');
     try {
+      if (DEV_LOG) console.log('[AI][summary] request', summaryData);
       const res = await aiAPI.generateSummary(summaryData);
-      if (res.data.success) {
-        setSummaryResult(res.data.summary);
-        setSuccessMode(res.data.mode);
-      }
+      if (DEV_LOG) console.log('[AI][summary] response', res?.data);
+      if (!res.data.success) throw new Error(res.data.message || 'AI failed');
+
+      const text = pickText(res);
+      const mode = pickMode(res);
+      if (!text) throw new Error('No output generated. Please try again.');
+
+      setSummaryResult(text);
+      setSuccessMode(mode);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to generate summary.');
     } finally {
@@ -81,8 +115,17 @@ const AIToolsDashboard = () => {
     if (!atsText) { setError('Please enter your resume text.'); return; }
     setLoading(true); setError(''); setSuccessMode(null); setAtsResult(null);
     try {
-      const res = await aiAPI.checkATSScore({ resumeText: atsText });
-      if (res.data.success) setAtsResult({ score: res.data.score, suggestions: res.data.suggestions });
+      if (DEV_LOG) console.log('[AI][ats] request', { resumeTextLen: atsText?.length });
+      const res = await aiAPI.checkATS(atsText);
+      if (DEV_LOG) console.log('[AI][ats] response', res?.data);
+      if (!res.data.success) throw new Error(res.data.message || 'AI failed');
+
+      const data = res?.data?.data || res?.data;
+      const score = data?.score ?? 0;
+      const suggestions = data?.suggestions || [];
+      const sArr = Array.isArray(suggestions) ? suggestions.filter(Boolean) : [];
+      
+      setAtsResult({ score, suggestions: sArr });
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to check ATS score.');
     } finally {
@@ -95,8 +138,17 @@ const AIToolsDashboard = () => {
     if (!bulletRole) { setError('Please enter a job role.'); return; }
     setLoading(true); setError(''); setSuccessMode(null); setBulletResult([]);
     try {
-      const res = await aiAPI.generateBulletPoints({ jobTitle: bulletRole });
-      if (res.data.success) setBulletResult(res.data.points);
+      if (DEV_LOG) console.log('[AI][bullets] request', { jobTitle: bulletRole });
+      const res = await aiAPI.generateBullets({ jobTitle: bulletRole });
+      if (DEV_LOG) console.log('[AI][bullets] response', res?.data);
+      if (!res.data.success) throw new Error(res.data.message || 'AI failed');
+
+      const points = pickArray(res, 'points');
+      const mode = pickMode(res);
+      if (points.length === 0) throw new Error('No bullet points generated. Please try again.');
+
+      setBulletResult(points);
+      setSuccessMode(mode);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to generate bullet points.');
     } finally {
@@ -109,8 +161,17 @@ const AIToolsDashboard = () => {
     if (!skillRole) { setError('Please enter a job role.'); return; }
     setLoading(true); setError(''); setSuccessMode(null); setSkillResult([]);
     try {
+      if (DEV_LOG) console.log('[AI][skills] request', { role: skillRole });
       const res = await aiAPI.suggestSkills({ role: skillRole });
-      if (res.data.success) setSkillResult(res.data.skills);
+      if (DEV_LOG) console.log('[AI][skills] response', res?.data);
+      if (!res.data.success) throw new Error(res.data.message || 'AI failed');
+
+      const skills = pickArray(res, 'skills');
+      const mode = pickMode(res);
+      if (skills.length === 0) throw new Error('No skills generated. Please try again.');
+
+      setSkillResult(skills);
+      setSuccessMode(mode);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to suggest skills.');
     } finally {

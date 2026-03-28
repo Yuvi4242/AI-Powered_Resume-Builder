@@ -118,6 +118,7 @@ const ChatWidget = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [unread, setUnread]     = useState(1);
+  const [aiMode, setAiMode] = useState('online'); // online | fallback
 
   const bottomRef    = useRef(null);
   const inputRef     = useRef(null);
@@ -165,7 +166,8 @@ const ChatWidget = () => {
 
     try {
       const res = await api.post('ai/chat', { message: trimmed });
-      const { reply, action, data } = res.data;
+      const { reply, action, data, provider, usedFallback } = res.data;
+      setAiMode(provider === 'fallback' || usedFallback ? 'fallback' : 'online');
 
       const aiMsg = { id: Date.now() + 1, sender: 'ai', text: reply, action };
       setMessages(prev => [...prev, aiMsg]);
@@ -186,6 +188,7 @@ const ChatWidget = () => {
         ? '⏳ I\'m a bit busy right now. Please wait a moment and try again!'
         : '❌ Something went wrong. Please try again.';
       setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: errMsg }]);
+      setAiMode('fallback');
     } finally {
       setIsLoading(false);
     }
@@ -306,9 +309,10 @@ const ChatWidget = () => {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                     <div style={{ width: 7, height: 7, borderRadius: '50%',
-                      background: '#10b981', boxShadow: '0 0 6px #10b981' }} />
+                      background: aiMode === 'fallback' ? '#f59e0b' : '#10b981',
+                      boxShadow: aiMode === 'fallback' ? '0 0 6px #f59e0b' : '0 0 6px #10b981' }} />
                     <span style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.72rem' }}>
-                      AI Online
+                      {aiMode === 'fallback' ? 'Offline AI Mode' : 'AI Online'}
                     </span>
                   </div>
                 </div>
