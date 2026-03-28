@@ -164,3 +164,31 @@ body {
   background-size: 200% 100%;
   animation: shimmer 2s linear infinite;
 }
+/* PDF Export & Print Styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .resume-page-container, .resume-page-container * {
+    visibility: visible;
+  }
+  .resume-page-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    transform: none !important;
+  }
+  /* Hide UI elements even if they are children of container */
+  .no-print {
+    display: none !important;
+  }
+  @page {
+    size: A4;
+    margin: 0;
+  }
+}

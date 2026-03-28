@@ -1,6 +1,7 @@
 import React from 'react';
 import FieldRenderer from '../FieldRenderer';
 import EditableText from '../EditableText';
+import SocialLinksRenderer from '../SocialLinksRenderer';
 
 const FresherTemplate = ({ data, isEditing, onInlineEdit }) => {
   const { 
@@ -31,21 +32,24 @@ const FresherTemplate = ({ data, isEditing, onInlineEdit }) => {
         <div className="text-[11pt] flex flex-wrap justify-center items-center gap-x-2 gap-y-1">
           <EditableText value={city} onChange={(v) => onInlineEdit('city', v)} isEditing={isEditing} placeholder="City" />, <EditableText value={state} onChange={(v) => onInlineEdit('state', v)} isEditing={isEditing} placeholder="State" />
           <span className="text-gray-400">|</span>
-          <EditableText value={phone} onChange={(v) => onInlineEdit('phone', v)} isEditing={isEditing} placeholder="Phone" />
+          {isEditing ? (
+            <EditableText value={phone} onChange={(v) => onInlineEdit('phone', v)} isEditing={isEditing} placeholder="Phone" />
+          ) : (
+            <a href={`tel:${phone?.replace(/\s+/g, '')}`} className="hover:underline">{phone}</a>
+          )}
           <span className="text-gray-400">|</span>
-          <EditableText value={email} onChange={(v) => onInlineEdit('email', v)} isEditing={isEditing} placeholder="Email" />
-          {linkedin && (
-            <>
-              <span className="text-gray-400">|</span>
-              <EditableText value={linkedin} onChange={(v) => onInlineEdit('linkedin', v)} isEditing={isEditing} placeholder="LinkedIn" />
-            </>
+          {isEditing ? (
+            <EditableText value={email} onChange={(v) => onInlineEdit('email', v)} isEditing={isEditing} placeholder="Email" />
+          ) : (
+            <a href={`mailto:${email}`} className="hover:underline">{email}</a>
           )}
-          {github && (
-            <>
-              <span className="text-gray-400">|</span>
-              <EditableText value={github} onChange={(v) => onInlineEdit('github', v)} isEditing={isEditing} placeholder="GitHub" />
-            </>
-          )}
+          <SocialLinksRenderer 
+            links={Object.fromEntries(Object.entries(data).filter(([k]) => k !== 'email' && k !== 'phone'))} 
+            showSeparator={true} 
+            showIcon={false} 
+            className="inline-flex !gap-x-2" 
+            itemClassName="text-black font-bold" 
+          />
         </div>
       </header>
 

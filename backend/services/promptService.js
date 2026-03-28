@@ -198,6 +198,7 @@ ${jobDescription}
 
 TASK:
 Optimize the resume summary, relevant skills, and specific bullet points to match this job description.
+Identify high-frequency technical keywords from the JD and ensure they are naturally integrated.
 Return ONLY the improved Summary and a list of suggested Keywords/Skills to add.
 
 ${FORMAT_RULES}
@@ -205,28 +206,152 @@ ${FORMAT_RULES}
 };
 
 /**
- * Copilot / Chat Prompts
+ * ATS Analysis Prompt
+ */
+const atsAnalysisPrompt = ({ resumeData = {}, jobDescription = "" }) => {
+  return `
+${ROLE_PROMPT}
+You are an advanced ATS (Applicant Tracking System) Analyzer. Perform an exhaustive audit of the provided resume data.
+
+${jobDescription ? `Compare against this Job Description: ${jobDescription}` : 'Analyze professional quality and standard ATS formatting rules for a software professional.'}
+
+RESUME DATA:
+${JSON.stringify(resumeData)}
+
+OUTPUT FORMAT (JSON ONLY):
+{
+  "score": 0-100,
+  "breakdown": {
+    "formatting": 0-25,
+    "keywords": 0-25,
+    "contentQuality": 0-25,
+    "roleAlignment": 0-25
+  },
+  "strengths": ["list 3-5 major strengths"],
+  "weaknesses": ["list 3-5 critical weaknesses"],
+  "missingKeywords": ["list 5-10 specific technical strings found in JD but missing in resume"],
+  "suggestions": [
+    "Provide specific, actionable bullet points to improve the resume."
+  ]
+}
+
+LANGUAGE RULE: Return values in professional English ONLY.
+${FORMAT_RULES}
+`.trim();
+};
+
+/**
+ * Resume Review / Critique Prompt
+ */
+const resumeReviewPrompt = ({ resumeData }) => {
+  return `
+${ROLE_PROMPT}
+Perform a comprehensive professional critique of this resume.
+
+RESUME DATA:
+${JSON.stringify(resumeData)}
+
+TASK:
+1. Identify missing sections.
+2. Critique the impact of experience bullet points.
+3. Check for technical skill depth.
+4. Provide a "Checklist" of things to fix.
+
+OUTPUT FORMAT (JSON ONLY):
+{
+  "checklist": ["item 1", "item 2"],
+  "impactAnalysis": "Overall commentary on resume impact",
+  "missingElements": ["section name", "contact info", etc.],
+  "tips": ["actionable tips"]
+}
+
+${FORMAT_RULES}
+`.trim();
+};
+
+/**
+ * Job Optimization Prompt
+ */
+const roleOptimizePrompt = ({ resumeData, targetRole }) => {
+  return `
+${ROLE_PROMPT}
+Optimize this resume for the specific target role: ${targetRole || 'Software Engineer'}.
+
+RESUME DATA:
+${JSON.stringify(resumeData)}
+
+TASK:
+1. Rewrite the summary to align with ${targetRole}.
+2. Suggest 5 key technical skills to prioritize.
+3. Provide 3 optimized experience bullets for this specific role.
+
+OUTPUT FORMAT (JSON ONLY):
+{
+  "summary": "The rewritten summary",
+  "skills": ["skill1", "skill2"],
+  "bullets": ["bullet1", "bullet2"]
+}
+
+${FORMAT_RULES}
+`.trim();
+};
+
+/**
+ * Improvement Prompts
+ */
+const improvementPrompt = ({ section, content, context, userInstruction = "" }) => {
+  return `
+${ROLE_PROMPT}
+
+ORIGINAL ${section.toUpperCase()}:
+"${content}"
+
+CONTEXT:
+${JSON.stringify(context)}
+
+INSTRUCTION: ${userInstruction || "Improve this content for better professional impact and ATS relevance."}
+
+TASK:
+Rewrite the content to be more powerful, using action verbs and technical keywords.
+Ensure it is professional American English.
+
+${FORMAT_RULES}
+`.trim();
+};
+
+/**
+ * Copilot / Chat Prompts (Unified Action Engine)
  */
 const copilotPrompt = ({ message, history, resumeData }) => {
   return `
 ${ROLE_PROMPT}
-You are an AI Resume Copilot integrated into a live resume builder.
+You are "Resume Copilot", a task-based AI assistant.
+
+CORE DIALECT:
+- Conversational Reply: Use Hinglish (Hindi + English) or Hindi.
+- Task Result (suggestedContent): Professional English.
+
+ACTIONS:
+- GENERATE_SUMMARY, IMPROVE_SUMMARY, REWRITE_PROJECT, SUGGEST_SKILLS, ATS_ANALYZE, ATS_RESCAN, RESUME_REVIEW, NAVIGATE.
 
 CURRENT RESUME STATE:
 ${JSON.stringify(resumeData)}
 
 CHAT HISTORY:
-${Array.isArray(history) ? history.map(h => `${h.role}: ${h.content}`).join('\n') : 'No previous history.'}
+${Array.isArray(history) ? history.map(h => `${h.role}: ${h.content}`).join('\n') : 'No history.'}
 
 USER MESSAGE:
 "${message}"
 
 TASK:
-- Help the user build their resume.
-- Answer questions about resume best practices.
-- If they ask to generate content, provide direct, high-quality resume-ready text.
-- Be concise and professional.
-- Do NOT use markdown code blocks unless providing a large amount of text.
+- If a task is requested (e.g. "summary likh de"), perform it.
+- Return EXACTLY this JSON structure:
+{
+  "reply": "Friendly confirmation in Hinglish",
+  "action": "ACTION_NAME",
+  "suggestedContent": "The actual resume text generated",
+  "data": { "tips": [], "score": 0, "missingKeywords": [] }
+}
 
 ${FORMAT_RULES}
 `.trim();
@@ -239,5 +364,9 @@ module.exports = {
   skillsPrompt,
   textToolPrompt,
   optimizePrompt,
+  atsAnalysisPrompt,
+  resumeReviewPrompt,
+  roleOptimizePrompt,
+  improvementPrompt,
   copilotPrompt
 };

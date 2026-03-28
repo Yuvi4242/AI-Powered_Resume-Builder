@@ -48,6 +48,7 @@ const ResumeBuilder = () => {
   const [isGeneratingBullets, setIsGeneratingBullets] = useState(false);
   const [atsScore, setAtsScore] = useState(0);
   const [atsSuggestions, setAtsSuggestions] = useState([]);
+  const [atsAnalysis, setAtsAnalysis] = useState(null);
   const [isCheckingATS, setIsCheckingATS] = useState(false);
   const [suggestedSkills, setSuggestedSkills] = useState([]);
   const [isSuggestingSkills, setIsSuggestingSkills] = useState(false);
@@ -118,6 +119,66 @@ const ResumeBuilder = () => {
     });
   };
 
+  // ── AI COPILOT SYNC (Custom Event Communication) ──────────────────────────
+  useEffect(() => {
+    const handleGetResumeData = () => {
+      window.dispatchEvent(new CustomEvent('RESUME_DATA_RESPONSE', { detail: formData }));
+    };
+
+    const handleApplyContent = (e) => {
+      const { field, content, action } = e.detail;
+      if (!field || !content) return;
+
+      setFormData(prev => {
+        const newData = { ...prev };
+        
+        // 1. Special Case: Adding a skill (Append)
+        if (action === 'ADD_SKILL' || field === 'skills') {
+          const currentSkills = prev.skills || '';
+          if (!currentSkills.toLowerCase().includes(content.toLowerCase())) {
+            newData.skills = currentSkills ? `${currentSkills}, ${content}` : content;
+          }
+          return newData;
+        }
+
+        // 2. Specialized list sections (Experience, Projects, etc.)
+        if (['experience', 'projects', 'academic_projects', 'internships'].includes(field)) {
+          if (typeof prev[field] === 'string') {
+            newData[field] = content;
+          } else {
+            const list = Array.isArray(prev[field]) ? [...prev[field]] : [];
+            if (list.length > 0) {
+              // Update the first/active entry
+              list[0] = { ...list[0], description: content };
+            } else {
+              // Create a default entry if list is empty
+              list.push({ title: 'New Entry', description: content });
+            }
+            newData[field] = list;
+          }
+        } else {
+          // 3. Standard string fields (summary, objective, etc.)
+          newData[field] = content;
+        }
+        
+        return newData;
+      });
+
+      setSuccessMessage(`Maine aapka ${field} update kar diya hai!`);
+      setTimeout(() => setSuccessMessage(''), 3000);
+    };
+
+    window.addEventListener('GET_RESUME_DATA', handleGetResumeData);
+    window.addEventListener('APPLY_AI_CONTENT', handleApplyContent);
+    window.addEventListener('TRIGGER_ATS_SCAN', handleCheckATS);
+    
+    return () => {
+      window.removeEventListener('GET_RESUME_DATA', handleGetResumeData);
+      window.removeEventListener('APPLY_AI_CONTENT', handleApplyContent);
+      window.removeEventListener('TRIGGER_ATS_SCAN', handleCheckATS);
+    };
+  }, [formData]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     handleChange(name, value);
@@ -146,10 +207,19 @@ const ResumeBuilder = () => {
       element.style.transform = originalTransform;
 
       if (type === 'pdf') {
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
-        pdf.addImage(imgData, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
-        pdf.save(`${formData.name || 'document'}.pdf`);
+        // Toggle to preview mode temporarily to hide editing UI
+        const wasEditing = isEditingMode;
+        setIsEditingMode(false);
+        
+        // Brief delay to allow React to re-render without editing indicators
+        setTimeout(() => {
+          window.print();
+          // Restore previous mode
+          setIsEditingMode(wasEditing);
+          setIsDownloading(false);
+          setSuccessMessage('PDF export triggered via browser print.');
+        }, 500);
+        return; // Early return for PDF as it's asynchronous via print dialog
       } else {
         const link = document.createElement('a');
         link.download = `${formData.name || 'document'}.${type}`;
@@ -163,6 +233,7 @@ const ResumeBuilder = () => {
 
   const handleFieldAI = async (fieldName, action = 'generate') => {
     setActiveAIField(fieldName);
+    if (fieldName === 'summary') setIsGenerating(true);
     setError('');
     
     try {
@@ -187,6 +258,8 @@ const ResumeBuilder = () => {
 
       if (response.data.success) {
         const content = response.data?.data?.content || response.data?.content || '';
+        const mode = response.data?.data?.source || response.data?.provider || 'AI';
+        setAiMode(mode);
         if (content) {
           setFormData(prev => ({ ...prev, [fieldName]: content }));
           setSuccessMessage(`${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} updated by AI!`);
@@ -198,6 +271,7 @@ const ResumeBuilder = () => {
       setError(`AI could not process ${fieldName}. Please try again.`);
     } finally {
       setActiveAIField(null);
+      if (fieldName === 'summary') setIsGenerating(false);
     }
   };
 
@@ -206,38 +280,19 @@ const ResumeBuilder = () => {
   };
 
   const handleCheckATS = async () => {
-    console.log("Calling AI API (ATS)...", formData);
     setIsCheckingATS(true); setError(''); setSuccessMessage('');
     try {
-      const stringifySection = (val) => {
-        if (!val) return '';
-        if (Array.isArray(val)) {
-          return val.map(item => Object.values(item).filter(v => !!v).join(' ')).join('\n');
-        }
-        return val;
-      };
-
-      const resumeText = [
-        formData.name,
-        formData.summary,
-        stringifySection(formData.experience),
-        stringifySection(formData.education),
-        formData.skills,
-        stringifySection(formData.projects)
-      ].join('\n\n');
-
-      const response = await aiAPI.checkATS(resumeText);
-      console.log("AI ATS Response:", response.data);
-      if (response.data.success) {
-        const score = response.data?.data?.score ?? response.data?.score ?? response.data?.result;
-        const suggestions = response.data?.data?.suggestions ?? response.data?.suggestions ?? [];
-        const sArr = Array.isArray(suggestions) ? suggestions : [];
-        setAtsScore(typeof score === 'number' ? score : 0);
-        setAtsSuggestions(sArr);
-        setSuccessMessage('ATS Analysis complete!');
+      const response = await aiAPI.generate('ats', { resumeText: JSON.stringify(formData) });
+      const result = response.data?.data || response.data;
+      
+      if (result) {
+        setAtsScore(result.score || 0);
+        setAtsSuggestions(result.suggestions || []);
+        setAtsAnalysis(result); // Extra state for detailed breakdown
+        setSuccessMessage('Deep ATS Analysis complete!');
       }
     } catch (err) {
-      setError('Failed to analyze ATS score.');
+      setError('ATS Analysis failed. Please try again.');
     } finally { setIsCheckingATS(false); }
   };
 
@@ -477,20 +532,67 @@ const ResumeBuilder = () => {
           
           <div className="flex-1 overflow-y-auto p-4 space-y-6">
             {/* ATS Metric Tooling */}
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-xl p-4 border border-gray-200 dark:border-gray-700 text-center">
-              <FiCheck className={`w-6 h-6 mx-auto mb-2 ${atsScore > 0 ? 'text-green-500' : 'text-gray-400'}`} />
-              <div className="text-3xl font-black text-gray-900 dark:text-white mb-1">{atsScore || '--'}<span className="text-lg text-gray-500">/100</span></div>
-              <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">ATS Formatting Score</p>
-              <Button variant="secondary" onClick={handleCheckATS} disabled={isCheckingATS} className="w-full mt-3 text-xs tracking-tight py-1.5 font-bold">
-                {isCheckingATS ? 'Checking...' : 'Rescan Document'}
+            <div className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-5 border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">ATS Scan</p>
+                <div className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${atsScore > 75 ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
+                  {atsScore > 75 ? 'Good' : 'Needs Optimization'}
+                </div>
+              </div>
+              
+              <div className="relative w-24 h-24 mx-auto mb-4">
+                <svg className="w-full h-full" viewBox="0 0 36 36">
+                  <path className="text-gray-200 dark:text-gray-700" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path className="text-primary-500" strokeWidth="3" strokeDasharray={`${atsScore}, 100`} strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-2xl font-black text-gray-900 dark:text-white leading-none">{atsScore || '--'}</span>
+                  <span className="text-[10px] text-gray-500 font-bold">%</span>
+                </div>
+              </div>
+
+              <Button variant="primary" onClick={handleCheckATS} disabled={isCheckingATS} className="w-full text-xs py-2 shadow-primary-500/20 font-bold">
+                {isCheckingATS ? 'Analyzing...' : 'Deep Scan Now'}
               </Button>
               
-              {atsSuggestions.length > 0 && (
-                <div className="mt-4 text-left space-y-2">
-                  <p className="text-[10px] font-bold text-primary-600 dark:text-primary-400 uppercase">Suggestions:</p>
-                  {atsSuggestions.map((s, i) => (
-                    <p key={i} className="text-[10px] text-gray-600 dark:text-gray-400 leading-tight flex gap-1"><FiInfo className="shrink-0 mt-0.5" /> {s}</p>
-                  ))}
+              {atsAnalysis && (
+                <div className="mt-6 space-y-4 text-left border-t border-gray-100 dark:border-gray-700 pt-4">
+                  {/* Breakdown bars */}
+                  <div className="space-y-2">
+                    {Object.entries(atsAnalysis.breakdown || {}).map(([key, val]) => (
+                      <div key={key}>
+                        <div className="flex justify-between text-[10px] font-bold mb-1 uppercase text-gray-500">
+                          <span>{key}</span>
+                          <span>{val}</span>
+                        </div>
+                        <div className="h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <div className="h-full bg-primary-500 transition-all duration-1000" style={{ width: `${(val / 25) * 100}%` }}></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {atsAnalysis.missingKeywords?.length > 0 && (
+                    <div>
+                      <p className="text-[10px] font-bold text-red-500 uppercase mb-2">Missing Keywords:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {atsAnalysis.missingKeywords.slice(0, 8).map((k, i) => (
+                          <span key={i} className="px-1.5 py-0.5 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-[9px] rounded-md border border-red-100 dark:border-red-900/30">
+                            {k}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <p className="text-[10px] font-bold text-primary-600 dark:text-primary-400 uppercase">Top Suggestions:</p>
+                    {atsSuggestions.slice(0, 3).map((s, i) => (
+                      <p key={i} className="text-[10px] text-gray-600 dark:text-gray-400 leading-tight flex gap-2">
+                        <span className="text-primary-500 font-black">•</span> {s}
+                      </p>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -501,7 +603,7 @@ const ResumeBuilder = () => {
               <Card className="px-3 py-4 bg-primary-50/50 dark:bg-primary-900/10 border border-primary-100 dark:border-primary-900/30">
                 <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 leading-relaxed">Turn your loose bullet points into a highly structural executive summary perfectly matching the tech industry narrative.</p>
                 <Button onClick={handleGenerateSummary} disabled={isGenerating} className="w-full text-xs py-2 shadow-primary-500/20">
-                  {isGenerating ? 'Writing with Gemini...' : 'Rewrite Summary with AI'}
+                  {isGenerating ? 'Writing with AI...' : 'Rewrite Summary with AI'}
                 </Button>
                 {aiMode && <p className="text-[10px] text-center mt-2 text-primary-600 dark:text-primary-400 font-medium">Rendered via {aiMode}</p>}
               </Card>

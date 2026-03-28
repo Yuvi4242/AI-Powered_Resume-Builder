@@ -201,7 +201,7 @@ const AIToolsDashboard = () => {
             {/* Header section */}
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Centralized AI Toolkit</h1>
-              <p className="text-gray-600 dark:text-gray-400">Everything you need to optimize and generate your professional resume assets, natively powered by Gemini.</p>
+              <p className="text-gray-600 dark:text-gray-400">Everything you need to optimize and generate your professional resume assets, natively powered by Advanced AI.</p>
             </div>
 
             {/* Error Notifications Zone */}
@@ -349,17 +349,52 @@ const AIToolsDashboard = () => {
                         </form>
 
                         {atsResult && (
-                          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="col-span-1 p-6 bg-blue-50 dark:bg-blue-900/10 rounded-xl border border-blue-100 dark:border-blue-800/30 flex flex-col items-center justify-center">
-                              <span className="text-sm text-blue-800 dark:text-blue-300 font-semibold mb-2">Target Grade</span>
-                              <div className="text-5xl font-extrabold text-blue-600 dark:text-blue-400">{atsResult.score}<span className="text-2xl text-blue-400">/100</span></div>
+                          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-6 space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                              <div className="col-span-1 p-6 bg-blue-50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-800/30 flex flex-col items-center justify-center">
+                                <span className="text-sm text-blue-800 dark:text-blue-300 font-semibold mb-2 uppercase tracking-wider text-[10px]">Overall Score</span>
+                                <div className="text-5xl font-black text-blue-600 dark:text-blue-400">{atsResult.score}<span className="text-2xl text-blue-400">/100</span></div>
+                              </div>
+                              <div className="col-span-2 p-6 bg-gray-50 dark:bg-gray-700/30 rounded-2xl border border-gray-200 dark:border-gray-600 shadow-sm">
+                                <h3 className="font-bold text-gray-800 dark:text-white mb-4 flex items-center gap-2 text-sm uppercase tracking-wide"><FiAward className="text-blue-500" /> Scoring Breakdown:</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                  {Object.entries(atsResult.breakdown || {}).map(([key, val]) => (
+                                    <div key={key}>
+                                      <div className="flex justify-between text-[10px] font-bold mb-1 uppercase text-gray-500">
+                                        <span>{key}</span>
+                                        <span>{val}</span>
+                                      </div>
+                                      <div className="h-1 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                                        <div className="h-full bg-blue-500 transition-all duration-1000" style={{ width: `${(val / 25) * 100}%` }}></div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
                             </div>
-                            <div className="col-span-2 p-6 bg-gray-50 dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 shadow-inner">
-                              <h3 className="font-semibold text-gray-800 dark:text-white mb-3 flex items-center gap-2"><FiAward className="text-blue-500" /> Improvement Scope Vectors:</h3>
-                              <ul className="space-y-2">
+
+                            {atsResult.missingKeywords?.length > 0 && (
+                              <div className="p-6 bg-red-50/50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/30">
+                                <h3 className="text-xs font-bold text-red-600 dark:text-red-400 uppercase mb-3 tracking-widest">Recommended Keywords to Add:</h3>
+                                <div className="flex flex-wrap gap-2">
+                                  {atsResult.missingKeywords.map((k, i) => (
+                                    <span key={i} className="px-3 py-1 bg-white dark:bg-gray-800 text-red-600 dark:text-red-300 text-xs rounded-lg border border-red-100 dark:border-red-800/30 shadow-sm">
+                                      {k}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="p-6 bg-blue-50/30 dark:bg-blue-900/5 rounded-2xl border border-blue-100/50 dark:border-blue-800/20">
+                              <h3 className="font-bold text-gray-800 dark:text-white mb-3 text-sm uppercase tracking-wide">Optimization Suggestions:</h3>
+                              <ul className="space-y-3">
                                 {atsResult.suggestions.map((s, i) => (
-                                  <li key={i} className="text-sm text-gray-600 dark:text-gray-300 flex items-start gap-2">
-                                    <span className="text-blue-500 mt-0.5">•</span> {s}
+                                  <li key={i} className="text-sm text-gray-600 dark:text-gray-300 flex items-start gap-3">
+                                    <span className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-500 flex items-center justify-center shrink-0 text-[10px] mt-0.5">
+                                      {i + 1}
+                                    </span> 
+                                    {s}
                                   </li>
                                 ))}
                               </ul>

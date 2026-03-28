@@ -2,6 +2,7 @@ import React from 'react';
 import { FiTrendingUp, FiTarget, FiMail, FiPhone } from 'react-icons/fi';
 import FieldRenderer from '../FieldRenderer';
 import EditableText from '../EditableText';
+import SocialLinksRenderer from '../SocialLinksRenderer';
 
 const MarketingTemplate = ({ data, isEditing, onInlineEdit }) => {
   const { name, email, phone, summary, skills, campaigns, achievements, education } = data;
@@ -13,9 +14,28 @@ const MarketingTemplate = ({ data, isEditing, onInlineEdit }) => {
         <h1 className="text-5xl font-extrabold mb-4 tracking-tight text-left">
           <EditableText value={name} onChange={(v) => onInlineEdit('name', v)} isEditing={isEditing} placeholder="Your Name" />
         </h1>
-        <div className="flex gap-6 text-sm font-medium opacity-90">
-          <span className="flex items-center gap-2"><FiMail /> <EditableText value={email} onChange={(v) => onInlineEdit('email', v)} isEditing={isEditing} placeholder="Email" /></span>
-          <span className="flex items-center gap-2"><FiPhone /> <EditableText value={phone} onChange={(v) => onInlineEdit('phone', v)} isEditing={isEditing} placeholder="Phone" /></span>
+        <div className="flex flex-wrap gap-6 text-sm font-medium opacity-90 text-left items-center">
+          <span className="flex items-center gap-2">
+            <FiMail /> 
+            {isEditing ? (
+              <EditableText value={email} onChange={(v) => onInlineEdit('email', v)} isEditing={isEditing} placeholder="Email" />
+            ) : (
+              <a href={`mailto:${email}`} className="hover:underline">{email}</a>
+            )}
+          </span>
+          <span className="flex items-center gap-2">
+            <FiPhone /> 
+            {isEditing ? (
+              <EditableText value={phone} onChange={(v) => onInlineEdit('phone', v)} isEditing={isEditing} placeholder="Phone" />
+            ) : (
+              <a href={`tel:${phone?.replace(/\s+/g, '')}`} className="hover:underline">{phone}</a>
+            )}
+          </span>
+          <SocialLinksRenderer 
+            links={Object.fromEntries(Object.entries(data).filter(([k]) => k !== 'email' && k !== 'phone'))} 
+            className="!gap-6" 
+            itemClassName="text-white" 
+          />
         </div>
       </header>
 

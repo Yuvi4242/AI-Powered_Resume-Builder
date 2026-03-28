@@ -20,7 +20,9 @@ const aiResponseParser = (response) => {
     /^Generated summary:$/i,
     /^Sure, here is the.*:/i,
     /^Revised text:$/i,
-    /^Optimized for ATS:$/i
+    /^Optimized for ATS:$/i,
+    /^ATS Analysis Summary:$/i,
+    /^Professional Recommendation:$/i
   ];
 
   preambles.forEach(regex => {
@@ -28,7 +30,8 @@ const aiResponseParser = (response) => {
   });
 
   // 3. Remove markdown code blocks (e.g. ```markdown ... ```)
-  text = text.replace(/```[a-z]*\n([\s\S]*?)\n```/g, '$1').trim();
+  // Handles multiple variations of code blocks
+  text = text.replace(/```(?:json|markdown|text|html)?[ \t]*\n?([\s\S]*?)[\n \t]*```/g, '$1').trim();
   text = text.replace(/```/g, '').trim();
 
   // 4. Remove leading/trailing quotes if the AI wrapped the whole thing

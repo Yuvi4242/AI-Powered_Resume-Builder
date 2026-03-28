@@ -2,6 +2,7 @@ import React from 'react';
 import { FiPieChart, FiMail, FiPhone, FiAward } from 'react-icons/fi';
 import FieldRenderer from '../FieldRenderer';
 import EditableText from '../EditableText';
+import SocialLinksRenderer from '../SocialLinksRenderer';
 
 const DataTemplate = ({ data, isEditing, onInlineEdit }) => {
   const { name, email, phone, summary, skills, projects, certifications, experience, education } = data;
@@ -17,13 +18,28 @@ const DataTemplate = ({ data, isEditing, onInlineEdit }) => {
             </h1>
             <p className="text-slate-400 font-medium tracking-widest uppercase text-xs">Analytics Professional</p>
           </div>
-          <div className="text-right text-sm space-y-1 opacity-80">
-            <p className="flex items-center justify-end gap-2">
-              <EditableText value={email} onChange={(v) => onInlineEdit('email', v)} isEditing={isEditing} placeholder="Email" /> <FiMail />
-            </p>
-            <p className="flex items-center justify-end gap-2">
-              <EditableText value={phone} onChange={(v) => onInlineEdit('phone', v)} isEditing={isEditing} placeholder="Phone" /> <FiPhone />
-            </p>
+          <div className="text-right text-sm space-y-2 opacity-80 flex flex-col items-end">
+            <div className="flex items-center justify-end gap-2">
+              {isEditing ? (
+                <EditableText value={email} onChange={(v) => onInlineEdit('email', v)} isEditing={isEditing} placeholder="Email" />
+              ) : (
+                <a href={`mailto:${email}`} className="hover:text-primary-400 decoration-slate-600 underline-offset-2 hover:underline">{email}</a>
+              )}
+              <FiMail className="shrink-0" />
+            </div>
+            <div className="flex items-center justify-end gap-2">
+              {isEditing ? (
+                <EditableText value={phone} onChange={(v) => onInlineEdit('phone', v)} isEditing={isEditing} placeholder="Phone" />
+              ) : (
+                <a href={`tel:${phone?.replace(/\s+/g, '')}`} className="hover:text-primary-400 decoration-slate-600 underline-offset-2 hover:underline">{phone}</a>
+              )}
+              <FiPhone className="shrink-0" />
+            </div>
+            <SocialLinksRenderer 
+              links={Object.fromEntries(Object.entries(data).filter(([k]) => k !== 'email' && k !== 'phone'))} 
+              className="justify-end !gap-4" 
+              itemClassName="text-slate-400 font-bold" 
+            />
           </div>
         </div>
 

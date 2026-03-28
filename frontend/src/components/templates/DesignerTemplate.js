@@ -2,6 +2,7 @@ import React from 'react';
 import { FiLayers, FiExternalLink } from 'react-icons/fi';
 import FieldRenderer from '../FieldRenderer';
 import EditableText from '../EditableText';
+import SocialLinksRenderer from '../SocialLinksRenderer';
 
 const DesignerTemplate = ({ data, isEditing, onInlineEdit }) => {
   const { name, email, phone, portfolio, skills, projects, experience, education } = data;
@@ -29,16 +30,26 @@ const DesignerTemplate = ({ data, isEditing, onInlineEdit }) => {
               </h1>
               <p className="text-xl text-primary-600 font-bold">Product & Visual Designer</p>
             </div>
-            <div className="text-right space-y-1">
-              <p className="text-sm font-bold flex items-center justify-end gap-2 text-gray-400">
-                <EditableText value={portfolio} onChange={(v) => onInlineEdit('portfolio', v)} isEditing={isEditing} placeholder="Portfolio Link" /> <FiExternalLink />
-              </p>
-              <p className="text-sm font-bold text-gray-400">
-                <EditableText value={email} onChange={(v) => onInlineEdit('email', v)} isEditing={isEditing} placeholder="Email" />
-              </p>
-              <p className="text-sm font-bold text-gray-400">
-                <EditableText value={phone} onChange={(v) => onInlineEdit('phone', v)} isEditing={isEditing} placeholder="Phone" />
-              </p>
+            <div className="text-right space-y-2 flex flex-col items-end">
+              <div className="text-sm font-bold text-gray-400">
+                {isEditing ? (
+                  <EditableText value={email} onChange={(v) => onInlineEdit('email', v)} isEditing={isEditing} placeholder="Email" />
+                ) : (
+                  <a href={`mailto:${email}`} className="hover:text-primary-600 transition-colors underline decoration-gray-200 underline-offset-4">{email}</a>
+                )}
+              </div>
+              <div className="text-sm font-bold text-gray-400">
+                {isEditing ? (
+                  <EditableText value={phone} onChange={(v) => onInlineEdit('phone', v)} isEditing={isEditing} placeholder="Phone" />
+                ) : (
+                  <a href={`tel:${phone?.replace(/\s+/g, '')}`} className="hover:text-primary-600 transition-colors underline decoration-gray-200 underline-offset-4">{phone}</a>
+                )}
+              </div>
+              <SocialLinksRenderer 
+                links={Object.fromEntries(Object.entries(data).filter(([k]) => k !== 'email' && k !== 'phone'))} 
+                className="justify-end !gap-4" 
+                itemClassName="text-gray-400 font-bold" 
+              />
             </div>
           </header>
 

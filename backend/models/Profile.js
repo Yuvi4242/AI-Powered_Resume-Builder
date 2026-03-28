@@ -75,6 +75,12 @@ const profileSchema = new mongoose.Schema({
   portfolio: String,
   leetcode: String,
   hackerrank: String,
+  codechef: String,
+  twitter: String,
+  behance: String,
+  dribbble: String,
+  medium: String,
+  website: String,
   otherLink: String,
 
   // 8) RESUME PREFERENCES

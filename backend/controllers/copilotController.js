@@ -11,27 +11,24 @@ const aiResponseParser = require('../utils/aiResponseParser');
 const { ok, fail } = require('../utils/apiResponse');
 
 /**
- * SYSTEM PROMPT — Intent Detection Engine (Groq Optimized)
+ * SYSTEM PROMPT — Intent Detection Engine (Action-Oriented)
  */
 const COPILOT_SYSTEM_PROMPT = `
-You are "Resume Copilot", a smart AI assistant built into an AI-powered Resume Builder app.
-Your job is to understand the user's intent and return a JSON response.
+You are "Resume Copilot", a professional AI Resume Systems Engineer. 
+Your goal is to perform actual resume building tasks, NOT just chat.
 
-RESPONSE FORMAT:
-{
-  "reply": "Conversational response to user (max 2 sentences)",
-  "action": "NONE | UPDATE_PROFILE | GENERATE_SUMMARY | GENERATE_SKILLS | NAVIGATE | IMPROVE_RESUME | ATS_TIPS",
-  "data": {}
-}
+CORE DIALECT:
+- Conversational Reply: Use Hinglish or Hindi.
+- Task Result (suggestedContent): Professional English.
 
-ACTION RULES:
-1. UPDATE_PROFILE: Extract info (fullName, phone, location, currentRole, technicalSkills (array), linkedIn, github).
-2. GENERATE_SUMMARY: Generate 3-sentence summary in data.careerObjective.
-3. GENERATE_SKILLS: Suggest skills for a role.
-4. NAVIGATE: route mapping (/dashboard, /profile, /builder, /templates, /ai-tools, /resumes).
-5. IMPROVE_RESUME / ATS_TIPS: Provide tips array in data.tips.
+STRICT JSON RESPOND RULES:
+1. "reply": Short confirmation in Hinglish (e.g. "Bilkul! Maine aapka summary generate kar diya hai.").
+2. "action": One of: GENERATE_SUMMARY, IMPROVE_SUMMARY, REWRITE_PROJECT, IMPROVE_EXPERIENCE, SUGGEST_SKILLS, ATS_ANALYZE, NAVIGATE.
+3. "suggestedContent": The ACTUAL RESUME TEXT (Summary, Project description, etc.).
+4. "data": Structured info for cards.
 
-Return ONLY valid JSON.
+FOR ATS TASKS:
+If asked for ATS score, return "action": "ATS_ANALYZE" and populate "data" with { "score": 0-100, "missingKeywords": ["string"], "feedback": "Short critique" }.
 `.trim();
 
 /**
@@ -41,37 +38,35 @@ Return ONLY valid JSON.
 const chatWithCopilot = async (req, res) => {
   try {
     const { message, resumeData, history } = req.body;
-
     if (!message) return fail(res, 400, 'Message is required.');
 
-    const prompt = `${COPILOT_SYSTEM_PROMPT}\n\nUser message: "${message}"\n\nContext:\n${JSON.stringify(resumeData || {})}\n\nReturn JSON.`;
+    const prompt = `
+${COPILOT_SYSTEM_PROMPT}
 
-    // Use Groq JSON generation
+CURRENT RESUME CONTEXT:
+${JSON.stringify(resumeData || {})}
+
+CHAT HISTORY:
+${Array.isArray(history) ? history.map(h => `${h.role}: ${h.content}`).join('\n') : 'No history.'}
+
+USER MESSAGE:
+"${message}"
+
+Return JSON only.
+    `.trim();
+
     const result = await generateJSON(prompt);
     
-    // ── PROFILE AUTO-UPDATE ────────────────────────────────────────────────
-    if (result.action === 'UPDATE_PROFILE' && result.data && req.user?._id) {
-      try {
-        const updatePayload = { ...result.data };
-        if (updatePayload.technicalSkills && !Array.isArray(updatePayload.technicalSkills)) {
-          updatePayload.technicalSkills = [updatePayload.technicalSkills];
-        }
-        await Profile.findOneAndUpdate(
-          { userId: req.user._id },
-          { $set: updatePayload },
-          { upsert: true }
-        );
-      } catch (e) {
-        console.warn('[Copilot] Profile update failed:', e.message);
-      }
-    }
+    // Ensure we have a meaningful reply or a clear intent to help
+    const botReply = result.reply || (result.suggestedContent ? "Bilkul! Maine aapka request implement kar diya hai." : "Main aapki resume me kaise help kar sakta hoon?");
 
     return ok(res, {
-      message: 'AI content generated successfully',
+      message: 'Assistant response processed',
       data: {
         type: 'chat',
-        text: result.reply || 'How can I assist you with your resume today?',
+        text: botReply,
         action: result.action || 'NONE',
+        suggestedContent: result.suggestedContent || '',
         payload: result.data || {},
         meta: { provider: 'groq', model: process.env.GROQ_MODEL }
       }
@@ -79,7 +74,7 @@ const chatWithCopilot = async (req, res) => {
 
   } catch (error) {
     console.error('[Copilot Error]:', error.message);
-    return fail(res, 500, 'Copilot is currently unavailable.');
+    return fail(res, 500, 'Assistant ke backend me temporary issue hai. Krpaya try again.');
   }
 };
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { FiMail, FiPhone } from 'react-icons/fi';
 import FieldRenderer from '../FieldRenderer';
 import EditableText from '../EditableText';
+import SocialLinksRenderer from '../SocialLinksRenderer';
 
 const BusinessTemplate = ({ data, isEditing, onInlineEdit }) => {
   const { name, email, phone, summary, experience, skills, education } = data;
@@ -13,12 +14,27 @@ const BusinessTemplate = ({ data, isEditing, onInlineEdit }) => {
         <h1 className="text-4xl font-serif font-black tracking-normal mb-6">
           <EditableText value={name} onChange={(v) => onInlineEdit('name', v)} isEditing={isEditing} placeholder="Your Name" />
         </h1>
-        <div className="flex justify-center gap-8 text-xs font-bold uppercase tracking-widest text-gray-600">
-          <span><EditableText value={email} onChange={(v) => onInlineEdit('email', v)} isEditing={isEditing} placeholder="Email" /></span>
-          <span>|</span>
-          <span><EditableText value={phone} onChange={(v) => onInlineEdit('phone', v)} isEditing={isEditing} placeholder="Phone" /></span>
-          <span>|</span>
-          <span className="flex items-center gap-1 font-serif italic capitalize tracking-normal text-sm font-medium">New York, NY</span>
+        <div className="flex justify-center gap-6 text-xs font-bold uppercase tracking-widest text-gray-600 flex-wrap items-center">
+          <span>
+            {isEditing ? (
+              <EditableText value={email} onChange={(v) => onInlineEdit('email', v)} isEditing={isEditing} placeholder="Email" />
+            ) : (
+              <a href={`mailto:${email}`} className="hover:text-primary-800 transition-colors border-b border-gray-200 hover:border-primary-800">{email}</a>
+            )}
+          </span>
+          <span className="opacity-30">|</span>
+          <span>
+            {isEditing ? (
+              <EditableText value={phone} onChange={(v) => onInlineEdit('phone', v)} isEditing={isEditing} placeholder="Phone" />
+            ) : (
+              <a href={`tel:${phone?.replace(/\s+/g, '')}`} className="hover:text-primary-800 transition-colors border-b border-gray-200 hover:border-primary-800">{phone}</a>
+            )}
+          </span>
+          <SocialLinksRenderer 
+            links={Object.fromEntries(Object.entries(data).filter(([k]) => k !== 'email' && k !== 'phone'))} 
+            className="justify-center !gap-6" 
+            itemClassName="text-gray-600 font-bold" 
+          />
         </div>
       </header>
 

@@ -19,6 +19,10 @@ export const templateSchemas = {
           { name: 'location', label: 'Location', type: 'text', placeholder: 'San Francisco, CA' },
           { name: 'github', label: 'GitHub URL', type: 'text', placeholder: 'github.com/username' },
           { name: 'linkedin', label: 'LinkedIn URL', type: 'text', placeholder: 'linkedin.com/in/username' },
+          { name: 'portfolio', label: 'Portfolio/Website', type: 'text', placeholder: 'portfolio.me' },
+          { name: 'leetcode', label: 'LeetCode', type: 'text', placeholder: 'leetcode.com/u/...' },
+          { name: 'hackerrank', label: 'HackerRank', type: 'text', placeholder: 'hackerrank.com/...' },
+          { name: 'twitter', label: 'Twitter/X', type: 'text', placeholder: 'twitter.com/...' },
         ]
       },
       {
@@ -86,6 +90,9 @@ export const templateSchemas = {
           { name: 'name', label: 'Full Name', type: 'text' },
           { name: 'email', label: 'Email', type: 'email' },
           { name: 'phone', label: 'Phone', type: 'tel' },
+          { name: 'linkedin', label: 'LinkedIn', type: 'text' },
+          { name: 'github', label: 'GitHub', type: 'text' },
+          { name: 'website', label: 'Website', type: 'text' },
         ]
       },
       {
@@ -141,6 +148,9 @@ export const templateSchemas = {
           { name: 'name', label: 'Full Name', type: 'text' },
           { name: 'email', label: 'Email', type: 'email' },
           { name: 'phone', label: 'Phone', type: 'tel' },
+          { name: 'linkedin', label: 'LinkedIn', type: 'text' },
+          { name: 'twitter', label: 'Twitter/X', type: 'text' },
+          { name: 'website', label: 'Portfolio', type: 'text' },
         ]
       },
       {
@@ -182,7 +192,9 @@ export const templateSchemas = {
           { name: 'name', label: 'Full Name', type: 'text' },
           { name: 'email', label: 'Email', type: 'email' },
           { name: 'phone', label: 'Phone', type: 'text' },
-          { name: 'location', label: 'Location', type: 'text' }
+          { name: 'location', label: 'Location', type: 'text' },
+          { name: 'linkedin', label: 'LinkedIn', type: 'text' },
+          { name: 'website', label: 'Professional Website', type: 'text' },
         ]
       },
       {
@@ -237,7 +249,10 @@ export const templateSchemas = {
         fields: [
           { name: 'name', label: 'Full Name', type: 'text' },
           { name: 'email', label: 'Email', type: 'email' },
-          { name: 'portfolio', label: 'Portfolio Link', type: 'text' }
+          { name: 'portfolio', label: 'Portfolio Link', type: 'text' },
+          { name: 'behance', label: 'Behance', type: 'text' },
+          { name: 'dribbble', label: 'Dribbble', type: 'text' },
+          { name: 'instagram', label: 'Instagram', type: 'text' },
         ]
       },
       {
@@ -274,6 +289,10 @@ export const templateSchemas = {
           { name: 'phone', label: 'Phone', type: 'tel' },
           { name: 'city', label: 'City', type: 'text' },
           { name: 'state', label: 'State', type: 'text' },
+          { name: 'linkedin', label: 'LinkedIn', type: 'text' },
+          { name: 'github', label: 'GitHub', type: 'text' },
+          { name: 'leetcode', label: 'LeetCode', type: 'text' },
+          { name: 'codechef', label: 'CodeChef', type: 'text' },
         ]
       },
       {
@@ -308,7 +327,11 @@ export const templateSchemas = {
           { name: 'name', label: 'Full Name', type: 'text' },
           { name: 'title', label: 'Professional Title', type: 'text' },
           { name: 'email', label: 'Email', type: 'email' },
-          { name: 'location', label: 'Location', type: 'text' }
+          { name: 'location', label: 'Location', type: 'text' },
+          { name: 'linkedin', label: 'LinkedIn', type: 'text' },
+          { name: 'github', label: 'GitHub', type: 'text' },
+          { name: 'twitter', label: 'Twitter/X', type: 'text' },
+          { name: 'website', label: 'Website', type: 'text' },
         ]
       },
       {

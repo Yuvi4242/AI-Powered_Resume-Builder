@@ -68,24 +68,49 @@ const generateText = async (prompt, options = {}) => {
 };
 
 /**
- * Generate JSON structure from Groq.
+ * Generate JSON structure from Groq with deep extraction logic.
  */
 const generateJSON = async (prompt, options = {}) => {
   try {
     const jsonPrompt = `${prompt}\n\nIMPORTANT: Return valid JSON ONLY. No markdown fences. No preamble.`;
     
-    const content = await generateText(jsonPrompt, {
+    let content = await generateText(jsonPrompt, {
       ...options,
-      temperature: 0.2,
+      temperature: 0.1, 
     });
 
+    // Cleanup: remove common AI prefixes if any
+    content = content.trim();
+    if (content.startsWith("```json")) content = content.replace(/^```json/, '').replace(/```$/, '');
+    else if (content.startsWith("```")) content = content.replace(/^```/, '').replace(/```$/, '');
+
     try {
-      const jsonMatch = content.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
-      const jsonStr = jsonMatch ? jsonMatch[0] : content;
-      return JSON.parse(jsonStr);
+      // 1. Try direct parse
+      return JSON.parse(content);
     } catch (e) {
+      // 2. Try Regex Extraction (Targeting the last JSON block in case of preambles)
+      const jsonRegex = /({[\s\S]*})|(\[[\s\S]*\])/g;
+      let match;
+      let lastMatch = null;
+      while ((match = jsonRegex.exec(content)) !== null) {
+        lastMatch = match[0];
+      }
+
+      if (lastMatch) {
+        try {
+          return JSON.parse(lastMatch);
+        } catch (innerE) {
+          console.warn('[GroqService] Regex JSON parse failed.');
+        }
+      }
+
+      // 3. Last Resort: Structured Fallback
       console.warn('[GroqService] JSON parse failed, returning raw string in object.');
-      return { content: content };
+      return { 
+        reply: content.slice(0, 150),
+        status: "PARSING_ERROR",
+        raw: content
+      };
     }
   } catch (error) {
     console.error('[GroqService JSON Error]:', error.message);

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { FiMail, FiPhone, FiLinkedin, FiGithub, FiGlobe, FiMapPin } from 'react-icons/fi';
 import FieldRenderer from '../FieldRenderer';
 import EditableText from '../EditableText';
+import SocialLinksRenderer from '../SocialLinksRenderer';
 
 const SidebarTemplate = ({ data, isEditing, onInlineEdit }) => {
   if (!data) return <div className="p-8 text-center text-gray-500">No data available for this template.</div>;
@@ -64,29 +65,32 @@ const SidebarTemplate = ({ data, isEditing, onInlineEdit }) => {
 
           <div className="space-y-4 text-xs font-medium text-gray-300 text-left">
             <div className="flex items-center gap-3">
-              <FiMail className="text-primary-400 w-4 h-4" />
-              <EditableText value={email} onChange={(v) => onInlineEdit('email', v)} isEditing={isEditing} placeholder="Email" />
+              <FiMail className="text-primary-400 w-4 h-4 shrink-0" />
+              {isEditing ? (
+                <EditableText value={email} onChange={(v) => onInlineEdit('email', v)} isEditing={isEditing} placeholder="Email" />
+              ) : (
+                <a href={`mailto:${email}`} className="hover:text-primary-400 transition-colors break-all">{email}</a>
+              )}
             </div>
             <div className="flex items-center gap-3">
-              <FiPhone className="text-primary-400 w-4 h-4" />
-              <EditableText value={phone} onChange={(v) => onInlineEdit('phone', v)} isEditing={isEditing} placeholder="Phone" />
+              <FiPhone className="text-primary-400 w-4 h-4 shrink-0" />
+              {isEditing ? (
+                <EditableText value={phone} onChange={(v) => onInlineEdit('phone', v)} isEditing={isEditing} placeholder="Phone" />
+              ) : (
+                <a href={`tel:${phone?.replace(/\s+/g, '')}`} className="hover:text-primary-400 transition-colors">{phone}</a>
+              )}
             </div>
             <div className="flex items-center gap-3">
               <FiMapPin className="text-primary-400 w-4 h-4" />
               <EditableText value={location} onChange={(v) => onInlineEdit('location', v)} isEditing={isEditing} placeholder="Location" />
             </div>
-            <div className="flex items-center gap-3">
-              <FiLinkedin className="text-primary-400 w-4 h-4" />
-              <EditableText value={linkedin} onChange={(v) => onInlineEdit('linkedin', v)} isEditing={isEditing} placeholder="LinkedIn" />
-            </div>
-            <div className="flex items-center gap-3">
-              <FiGithub className="text-primary-400 w-4 h-4" />
-              <EditableText value={github} onChange={(v) => onInlineEdit('github', v)} isEditing={isEditing} placeholder="GitHub" />
-            </div>
-            <div className="flex items-center gap-3">
-              <FiGlobe className="text-primary-400 w-4 h-4" />
-              <EditableText value={website} onChange={(v) => onInlineEdit('website', v)} isEditing={isEditing} placeholder="Website" />
-            </div>
+            <SocialLinksRenderer 
+              links={Object.fromEntries(Object.entries(data).filter(([k]) => k !== 'email' && k !== 'phone'))} 
+              vertical={true} 
+              className="mt-4" 
+              itemClassName="text-gray-300 font-bold" 
+              showIcon={true} 
+            />
           </div>
         </section>
 

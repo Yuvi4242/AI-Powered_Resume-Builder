@@ -61,15 +61,20 @@ const TypingIndicator = () => (
 );
 
 // ─── Message bubble ───────────────────────────────────────────────────────
-const MessageBubble = ({ msg }) => {
+const MessageBubble = ({ msg, onApply }) => {
   const isAI = msg.sender === 'ai';
+  const hasContent = msg.suggestedContent && msg.suggestedContent.trim();
+  const hasData = msg.payload && Object.keys(msg.payload).length > 0;
+  const isATS = isAI && (msg.action?.includes('ATS') || msg.payload?.score);
+  const isSkills = isAI && (msg.action?.includes('SKILL') || msg.payload?.tips);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.25 }}
-      style={{ display: 'flex', justifyContent: isAI ? 'flex-start' : 'flex-end',
-        marginBottom: '10px' }}>
+      style={{ display: 'flex', justifyContent: isAI ? 'flex-start' : 'flex-end', marginBottom: '16px' }}
+    >
       {isAI && (
         <div style={{ width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
           background: 'linear-gradient(135deg,#8B5CF6,#38BDF8)',
@@ -79,26 +84,93 @@ const MessageBubble = ({ msg }) => {
         </div>
       )}
       <div style={{
-        maxWidth: '78%',
-        padding: '10px 14px',
+        maxWidth: '85%',
+        padding: '12px 14px',
         borderRadius: isAI ? '18px 18px 18px 4px' : '18px 4px 18px 18px',
-        background: isAI
-          ? '#141f38'
-          : 'linear-gradient(135deg,#8B5CF6,#38BDF8)',
+        background: isAI ? '#141f38' : 'linear-gradient(135deg,#8B5CF6,#38BDF8)',
         borderLeft: isAI ? '3px solid #8B5CF6' : 'none',
         color: '#dee5ff',
-        fontSize: '0.84rem',
-        lineHeight: '1.55',
-        fontFamily: 'Inter, sans-serif',
-        boxShadow: isAI
-          ? '0 4px 12px rgba(0,0,0,0.3)'
-          : '0 4px 15px rgba(139,92,246,0.35)',
+        fontSize: '0.86rem',
+        lineHeight: '1.6',
+        position: 'relative',
+        boxShadow: isAI ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 15px rgba(139,92,246,0.35)',
       }}>
-        {msg.text}
+        {/* The Conversational Text */}
+        <div style={{ marginBottom: (hasContent || isATS || isSkills) ? '12px' : '0' }}>
+          {msg.text}
+        </div>
+
+        {/* 1. RENDER ACTUAL GENERATED CONTENT (Summary, Project, etc.) */}
+        {hasContent && (
+          <div style={{
+            marginTop: 8, padding: '12px', background: 'rgba(255,255,255,0.04)',
+            borderRadius: 12, border: '1px solid rgba(139,92,246,0.3)',
+            color: '#fff', fontSize: '0.82rem', fontWeight: 400,
+            whiteSpace: 'pre-wrap', position: 'relative'
+          }}>
+            <p style={{ fontSize: '0.65rem', color: '#8B5CF6', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 6 }}>Generated Result:</p>
+            {msg.suggestedContent}
+            
+            <button 
+              onClick={() => onApply(msg)}
+              style={{
+                marginTop: 10, width: '100%', padding: '8px', borderRadius: 8,
+                background: '#8B5CF6', color: 'white', border: 'none',
+                fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                boxShadow: '0 4px 12px rgba(139,92,246,0.2)'
+              }}>
+              <SparkleIcon /> Apply to Resume
+            </button>
+          </div>
+        )}
+
+        {/* 2. RENDER ATS SCORE & BREAKDOWN */}
+        {isATS && (
+          <div style={{ marginTop: 8, padding: 12, background: 'rgba(0,0,0,0.4)', borderRadius: 12, border: '1px solid #10b981' }}>
+             <p style={{ fontSize: '0.65rem', color: '#10b981', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>ATS Analysis Result:</p>
+             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#10b981' }}>{msg.payload?.score || '--'}%</div>
+                <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.1)', borderRadius: 3, overflow: 'hidden' }}>
+                   <div style={{ height: '100%', background: '#10b981', width: `${msg.payload?.score || 0}%` }} />
+                </div>
+             </div>
+             {msg.payload?.missingKeywords?.length > 0 && (
+               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 8 }}>
+                 {msg.payload.missingKeywords.slice(0, 5).map((k, i) => (
+                   <span key={i} style={{ fontSize: '0.65rem', background: 'rgba(239,68,68,0.1)', color: '#f87171', padding: '2px 6px', borderRadius: 4, border: '1px solid rgba(239,68,68,0.2)' }}>{k}</span>
+                 ))}
+               </div>
+             )}
+          </div>
+        )}
+
+        {/* 3. RENDER SKILLS SUGGESTIONS */}
+        {isSkills && (
+          <div style={{ marginTop: 8 }}>
+            <p style={{ fontSize: '0.65rem', color: '#38BDF8', fontWeight: 700, textTransform: 'uppercase', marginBottom: 8 }}>Suggested Skills:</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {(msg.payload?.tips || []).map((skill, i) => (
+                <button
+                  key={i}
+                  onClick={() => onApply({ ...msg, suggestedContent: skill, action: 'ADD_SKILL' })}
+                  style={{
+                    fontSize: '0.72rem', background: '#1e293b', color: '#38BDF8',
+                    padding: '4px 10px', borderRadius: 999, border: '1px solid rgba(56,189,248,0.2)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  + {skill}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Action Badge */}
         {msg.action && msg.action !== 'NONE' && (
-          <div style={{ marginTop: 6, fontSize: '0.73rem', opacity: 0.65,
-            color: '#9bffce', fontFamily: 'Inter, sans-serif' }}>
-            ⚡ Action: {msg.action}
+          <div style={{ marginTop: 8, fontSize: '0.68rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <BotIcon /> Task: {msg.action.replace('_', ' ')}
           </div>
         )}
       </div>
@@ -112,13 +184,14 @@ const ChatWidget = () => {
   const [isOpen, setIsOpen]           = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages]       = useState([
-    { id: 1, sender: 'ai', text: '✨ Hi! I\'m your Resume Copilot. I can help you build your resume, auto-fill your profile, generate summaries, suggest skills, and much more. What would you like to do today?' }
+    { id: 1, sender: 'ai', text: '✨ Namaste! Main aapka AI Resume Copilot hoon. Summary likhne, project improve karne ya ATS score check karne me main aapki help kar sakta hoon. Poochiye kya karna hai?' }
   ]);
   const [input, setInput]       = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [unread, setUnread]     = useState(1);
-  const [aiMode, setAiMode] = useState('online'); // online | fallback
+  const [aiMode, setAiMode] = useState('online'); 
+  const [resumeData, setResumeData] = useState({});
 
   const bottomRef    = useRef(null);
   const inputRef     = useRef(null);
@@ -129,35 +202,92 @@ const ChatWidget = () => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
+  // ── Sync Context-Awareness ───────────────────────────────────────────────
+  useEffect(() => {
+    const handleResponse = (e) => setResumeData(e.detail || {});
+    window.addEventListener('RESUME_DATA_RESPONSE', handleResponse);
+    
+    // Periodically poll if in builder
+    const poll = setInterval(() => {
+      window.dispatchEvent(new CustomEvent('GET_RESUME_DATA'));
+    }, 5000);
+
+    return () => {
+      window.removeEventListener('RESUME_DATA_RESPONSE', handleResponse);
+      clearInterval(poll);
+    };
+  }, []);
+
   // ── Focus Input on open ──────────────────────────────────────────────────
   useEffect(() => {
     if (isOpen && !isMinimized) {
       setTimeout(() => inputRef.current?.focus(), 150);
       setUnread(0);
+      window.dispatchEvent(new CustomEvent('GET_RESUME_DATA'));
     }
   }, [isOpen, isMinimized]);
 
   // ── Handle action from AI response ──────────────────────────────────────
-  const handleAction = useCallback(async (action, data) => {
+  const handleAction = useCallback(async (action, data, suggestedContent) => {
     if (!action || action === 'NONE') return;
+    const a = action.toUpperCase();
 
     try {
-      if (action === 'UPDATE_PROFILE' && data) {
-        await profileAPI.updateProfile(data);
-      }
-      if (action === 'NAVIGATE' && data?.route) {
+      if (a === 'NAVIGATE' && data?.route) {
         setTimeout(() => navigate(data.route), 800);
       }
-      // GENERATE_SUMMARY and other actions are reflected via the AI reply text
+      
+      // Auto-trigger ATS analysis if requested via chat
+      if (['ATS_ANALYSIS', 'ATS_SCAN', 'ATS_CHECK', 'ATS_ANALYZE', 'ATS_RESCAN'].includes(a)) {
+        window.dispatchEvent(new CustomEvent('TRIGGER_ATS_SCAN'));
+      }
     } catch (err) {
-      console.warn('[Copilot] Action error:', err.message);
+      console.warn('[Copilot] Action execution error:', err.message);
     }
   }, [navigate]);
+
+  const onApply = (msg) => {
+    const a = msg.action ? msg.action.toUpperCase() : '';
+    let field = '';
+    let content = msg.suggestedContent;
+    
+    // Skill specific logic
+    if (a === 'ADD_SKILL') {
+      field = 'skills';
+    } else if (a.includes('SUMMARY')) {
+      field = 'summary';
+    } else if (a.includes('EXPERIENCE')) {
+      field = 'experience';
+    } else if (a.includes('PROJECT')) {
+      field = 'projects';
+    } else if (a.includes('SKILL')) {
+      field = 'skills';
+    } else if (a.includes('ACHIEVEMENT')) {
+      field = 'achievements';
+    } else if (a.includes('ROLE_OPTIMIZE')) {
+      field = 'summary';
+    } else {
+      field = 'summary'; 
+    }
+
+    window.dispatchEvent(new CustomEvent('APPLY_AI_CONTENT', {
+      detail: { field, content, action: a }
+    }));
+    
+    setMessages(prev => [...prev, { 
+      id: Date.now(), 
+      sender: 'ai', 
+      text: `✅ Task Complete! Maine aapke resume me ${field} update kar diya hai. Aap changes preview me dekh sakte hain.` 
+    }]);
+  };
 
   // ── Send message ─────────────────────────────────────────────────────────
   const sendMessage = useCallback(async (text) => {
     const trimmed = (text || input).trim();
     if (!trimmed || isLoading) return;
+
+    // Pulse check for latest data
+    window.dispatchEvent(new CustomEvent('GET_RESUME_DATA'));
 
     const userMsg = { id: Date.now(), sender: 'user', text: trimmed };
     setMessages(prev => [...prev, userMsg]);
@@ -165,34 +295,49 @@ const ChatWidget = () => {
     setIsLoading(true);
 
     try {
-      const res = await api.post('ai/chat', { message: trimmed });
-      const { reply, action, data, provider, usedFallback } = res.data;
-      setAiMode(provider === 'fallback' || usedFallback ? 'fallback' : 'online');
+      const history = messages.slice(-6).map(m => ({ 
+        role: m.sender === 'ai' ? 'assistant' : 'user', 
+        content: m.text 
+      }));
 
-      const aiMsg = { id: Date.now() + 1, sender: 'ai', text: reply, action };
+      const res = await api.post('ai/chat', { 
+        message: trimmed, 
+        resumeData: resumeData || {},
+        history
+      });
+
+      const aiData = res.data?.data || res.data;
+      const { text: reply, action, payload, suggestedContent, meta } = aiData;
+      
+      setAiMode(meta?.provider || 'online');
+
+      // Removal of generic fallback: if we have content/action, prioritize the AI's real response
+      const finalReply = reply || (suggestedContent ? "Maine aapka task complete kar diya hai." : "Main aapki kaise help kar sakta hoon?");
+
+      const aiMsg = { 
+        id: Date.now() + 1, 
+        sender: 'ai', 
+        text: finalReply, 
+        action: action || 'NONE',
+        suggestedContent,
+        payload 
+      };
       setMessages(prev => [...prev, aiMsg]);
 
-      // Perform action asynchronously
-      await handleAction(action, data);
-
-      // Voice output (premium)
-      if (window.speechSynthesis && reply) {
-        const utter = new SpeechSynthesisUtterance(reply);
-        utter.rate  = 1.05;
-        utter.pitch = 1;
-        // Only speak short replies
-        if (reply.length < 150) window.speechSynthesis.speak(utter);
+      // Perform auto-actions
+      if (action && action !== 'NONE') {
+        await handleAction(action, payload, suggestedContent);
       }
     } catch (err) {
+      console.error('[ChatWidget Error]:', err);
       const errMsg = err.response?.status === 429
-        ? '⏳ I\'m a bit busy right now. Please wait a moment and try again!'
-        : '❌ Something went wrong. Please try again.';
+        ? '⏳ Server limits reached. Thoda break lo, phir try karte hain!'
+        : '❌ AI is having trouble connecting. Connection check karein.';
       setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: errMsg }]);
-      setAiMode('fallback');
     } finally {
       setIsLoading(false);
     }
-  }, [input, isLoading, handleAction]);
+  }, [input, isLoading, handleAction, messages, resumeData]);
 
   // ── Voice input ──────────────────────────────────────────────────────────
   const toggleVoice = useCallback(() => {
