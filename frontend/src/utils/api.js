@@ -1,10 +1,12 @@
 import axios from 'axios';
 
-// In production, prefer relative "/api/" (same origin).
-// In development, allow override via REACT_APP_API_BASE_URL.
-const API_BASE_URL =
-  process.env.REACT_APP_API_BASE_URL ||
-  (window?.location?.hostname ? `${window.location.protocol}//${window.location.hostname}:5000/api/` : 'http://localhost:5000/api/');
+// In production, use the environment variable for the backend root.
+// If not set, fallback to the current window location (useful for same-origin setups).
+export const BASE_URL = 
+  process.env.REACT_APP_API_URL || 
+  (window?.location?.origin || 'http://localhost:5000');
+
+const API_BASE_URL = `${BASE_URL}/api/`;
 
 // Create axios instance with default config
 const api = axios.create({

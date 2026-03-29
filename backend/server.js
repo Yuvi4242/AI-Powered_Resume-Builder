@@ -3,6 +3,8 @@ require('./config/env'); // must be first
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const { isDev } = require('./config/env');
 
 const connectDB = require('./config/db');
@@ -11,7 +13,7 @@ const aiRoutes = require('./routes/aiRoutes');
 const copilotRoutes = require('./routes/copilotRoutes');
 const resumeRoutes = require('./routes/resumeRoutes');
 const userRoutes = require('./routes/userRoutes');
-const { sendTestEmail } = require('./services/emailService');
+const profileRoutes = require('./routes/profileRoutes');
 
 if (isDev) {
   console.log('=== Environment Variables (sanitized) ===');
@@ -29,9 +31,32 @@ connectDB();
 // Initialize Express app
 const app = express();
 
-// Middleware
-app.use(cors());
+// Security Middlewares
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  contentSecurityPolicy: false, // Disabled for dev flexibility, can be tightened later
+}));
+
+// CORS Configuration (Refine for production deployment)
+app.use(cors({
+  origin: process.env.FRONTEND_URL || '*',
+  credentials: true,
+}));
+
 app.use(express.json({ limit: '1mb' }));
+
+// Rate Limiting (Strict on Auth, General on others)
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: { success: false, message: "Too many requests, please try again later." }
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20, // stricter for auth
+  message: { success: false, message: "Too many login/signup attempts, please wait 15 minutes." }
+});
 
 // Handle malformed JSON bodies cleanly
 app.use((err, req, res, next) => {
@@ -45,42 +70,13 @@ app.use((err, req, res, next) => {
   return next(err);
 });
 
-// Test route - send test email
-app.get('/api/test-email', async (req, res) => {
-  const { email } = req.query;
-  if (!email) {
-    return res.status(400).json({ success: false, message: 'Please provide email query param' });
-  }
-  console.log('\n=== TEST EMAIL ROUTE ===');
-  const result = await sendTestEmail(email);
-  res.json(result);
-});
-
-// Test route - Groq API (no auth)
-app.get('/api/test-groq', async (req, res) => {
-  try {
-    const aiService = require('./services/aiService');
-    console.log('\n=== TEST GROQ API ===');
-    const result = await aiService.generateSummary({ 
-      name: 'Test User', 
-      skills: 'React, Node.js', 
-      experience: 'Built web apps for 3 years',
-      projects: 'AI Resume Builder'
-    });
-    res.json(result);
-  } catch (error) {
-    console.error('Groq Test Error:', error.message);
-    res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-const profileRoutes = require('./routes/profileRoutes');
-app.use('/api/auth', authRoutes);
-app.use('/api/ai', aiRoutes);
-app.use('/api/ai', copilotRoutes);   // Copilot: /chat, /fill-profile, /generate-summary, /improve-resume
-app.use('/api/resume', resumeRoutes);
-app.use('/api/user', userRoutes);
-app.use('/api/profile', profileRoutes);
+// Registered Routes
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/ai', generalLimiter, aiRoutes);
+app.use('/api/ai', generalLimiter, copilotRoutes);   // Copilot/AI assist
+app.use('/api/resume', generalLimiter, resumeRoutes);
+app.use('/api/user', generalLimiter, userRoutes);
+app.use('/api/profile', generalLimiter, profileRoutes);
 
 // Static folder for file uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -121,10 +117,9 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server (production-safe: do not silently change ports)
 const port = parseInt(process.env.PORT, 10) || 5000;
 const server = app.listen(port, () => {
-  console.log(`✅ Server running on port ${port}`);
+  console.log(`✅ [PROD-READY] Server running on port ${port}`);
 });
 
 server.on('error', (err) => {

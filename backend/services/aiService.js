@@ -55,16 +55,22 @@ const aiService = {
 
       switch (promptType) {
         case 'ats':
+        case 'ats_analysis':
+        case 'ats_analyze':
+        case 'scan':
           const resumeForAts = options.resumeData || options.resumeText || options.formData || options;
           prompt = prompts.atsAnalysisPrompt({ ...options, resumeData: resumeForAts });
           response = await generateJSON(prompt);
+          
           // Standardize ATS response
           return {
             success: true,
             data: {
-              content: response.summary || "Analysis complete.",
+              content: response.summary || response.content || "Analysis complete.",
               score: response.score || 0,
               breakdown: response.breakdown || {},
+              strengths: response.strengths || [],
+              weaknesses: response.weaknesses || [],
               suggestions: response.suggestions || [],
               missingKeywords: response.missingKeywords || [],
               meta: { action: 'ats', provider: 'groq' }

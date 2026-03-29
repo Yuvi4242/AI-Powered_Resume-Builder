@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { FiZap, FiCheckCircle, FiShare2, FiStar, FiArrowRight, FiCheck } from 'react-icons/fi';
+import { FiZap, FiCheckCircle, FiStar, FiArrowRight, FiShield, FiCpu, FiLayout, FiActivity } from 'react-icons/fi';
 import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
 import Footer from '../components/Footer';
 import Logo from '../components/Logo';
 import HeroSection from '../components/HeroSection';
@@ -10,38 +11,52 @@ const Landing = () => {
   const navigate = useNavigate();
 
   const features = [
-    { icon: FiZap, title: 'AI Writing Assistant', desc: 'Generate professional summaries and impact-driven bullet points instantly.' },
-    { icon: FiCheckCircle, title: 'ATS Templates', desc: 'Ensure your resume passes Applicant Tracking Systems formats.' },
-    { icon: FiShare2, title: 'Export & Share', desc: 'Download as PDF or share a live link with recruiters in one click.' }
-  ];
-
-  const steps = [
-    { num: '01', title: 'Import or Start Fresh', desc: 'Upload your LinkedIn data or build from completely scratch.' },
-    { num: '02', title: 'Edit & Optimize', desc: 'Use AI to rewrite bullets and optimize for ATS algorithms.' },
-    { num: '03', title: 'Export & Apply', desc: 'Download your polished resume and land more interviews.' }
+    { 
+      icon: FiCpu, 
+      title: 'AI Resume Engine', 
+      desc: 'Craft high-impact sections powered by industry-leading LLMs optimized for career success.',
+      color: 'text-blue-500'
+    },
+    { 
+      icon: FiLayout, 
+      title: 'Premium ATS Layouts', 
+      desc: 'Sleek, recruiter-tested templates designed to slice through complex ATS filters effortlessly.',
+      color: 'text-indigo-500'
+    },
+    { 
+      icon: FiActivity, 
+      title: 'Real-time ATS Scoring', 
+      desc: 'Get instant feedback on your resume strength and deep scan analysis to beat the competition.',
+      color: 'text-emerald-500'
+    }
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans selection:bg-primary-100 selection:text-primary-900 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-primary-100 selection:text-primary-900 overflow-x-hidden">
       
-      {/* Navbar Minimal Route */}
-      <nav className="fixed top-0 inset-x-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+      {/* Premium Navbar */}
+      <nav className="fixed top-0 inset-x-0 bg-white/70 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 z-50 transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Logo />
           
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600 dark:text-gray-300">
+          <div className="hidden md:flex items-center gap-10 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
             <a href="#features" className="hover:text-primary-600 transition-colors">Features</a>
-            <a href="#templates" className="hover:text-primary-600 transition-colors">Templates</a>
-            <a href="#pricing" className="hover:text-primary-600 transition-colors">Pricing</a>
-            <button onClick={() => navigate('/resources')} className="hover:text-primary-600 transition-colors cursor-pointer">Resources</button>
+            <a href="#about" className="hover:text-primary-600 transition-colors">About</a>
+            <button onClick={() => navigate('/resources')} className="hover:text-primary-600 transition-colors">Resources</button>
           </div>
 
-          <div className="flex items-center gap-4">
-            <button onClick={() => navigate('/login')} className="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+          <div className="flex items-center gap-6">
+            <button 
+              onClick={() => navigate('/login')} 
+              className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-300 hover:text-primary-500 transition-colors"
+            >
               Sign In
             </button>
-            <Button onClick={() => navigate('/signup')} variant="primary" className="text-sm px-4 py-2">
-              Get Started — It's free
+            <Button 
+              size="sm"
+              onClick={() => navigate('/signup')} 
+            >
+              Sign Up Free
             </Button>
           </div>
         </div>
@@ -50,103 +65,72 @@ const Landing = () => {
       {/* Hero Header Space */}
       <HeroSection />
 
-      {/* Metrics Counter Section */}
-      <section className="border-y border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/30">
-        <div className="max-w-7xl mx-auto px-6 py-12 grid grid-cols-1 md:grid-cols-3 gap-8 divide-y md:divide-y-0 md:divide-x divide-gray-200 dark:divide-gray-700 text-center">
-          <div>
-            <h3 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-2">70%</h3>
-            <p className="text-gray-500 font-medium">Faster resume creation</p>
-          </div>
-          <div>
-            <h3 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-2">+40%</h3>
-            <p className="text-gray-500 font-medium">More interview callbacks</p>
-          </div>
-          <div>
-            <h3 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-2 flex justify-center items-center gap-2">4.8/5 <FiStar className="text-amber-400 fill-amber-400 w-6 h-6" /></h3>
-            <p className="text-gray-500 font-medium">Average user rating</p>
-          </div>
+      {/* Social Proof / Metrics Section */}
+      <section className="py-16 bg-white/50 dark:bg-slate-900/20 border-y border-slate-200/50 dark:border-slate-800/50 relative">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-12">
+          {[
+            { label: 'Active Users', value: '100K+', icon: FiZap },
+            { label: 'Success Rate', value: '98.4%', icon: FiCheckCircle },
+            { label: 'ATS Templates', value: '150+', icon: FiStar },
+            { label: 'User Rating', value: '4.9/5', icon: FiActivity },
+          ].map((stat, i) => (
+            <div key={i} className="text-center group transition-all duration-300 hover:scale-105">
+              <h3 className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white mb-2 group-hover:text-primary-500 transition-colors">{stat.value}</h3>
+              <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-500/80">{stat.label}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Features Outline Matrix */}
-      <section id="features" className="py-24 px-6 max-w-7xl mx-auto">
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Everything you need to succeed</h2>
-          <p className="text-gray-600 dark:text-gray-400">Stop wrestling with formatting and writer's block. ResumeCraft handles the heavy lifting.</p>
+      {/* Features Matrix */}
+      <section id="features" className="py-32 px-6 max-w-7xl mx-auto relative">
+         {/* Decoration */}
+        <div className="absolute top-[20%] left-[-10%] w-[400px] h-[400px] bg-primary-500/5 blur-[100px] rounded-full pointer-events-none"></div>
+
+        <div className="text-center max-w-3xl mx-auto mb-24">
+          <h2 className="mb-6 tracking-tight">The only resume platform <br /> you'll <span className="text-gradient">ever need.</span></h2>
+          <p className="text-lg text-slate-600 dark:text-slate-400 font-medium leading-relaxed">We combined advanced AI with deep recruiter psychology to build the most effective hiring tool on the market. Land interviews, not just applications.</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {features.map((f, i) => (
-            <motion.div key={i} whileHover={{ y: -5 }} className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-              <div className="w-12 h-12 bg-primary-50 dark:bg-primary-900/30 text-primary-600 rounded-xl flex items-center justify-center mb-6">
+            <Card key={i} hoverable className="p-10 !bg-white dark:!bg-slate-900/40 relative overflow-hidden group">
+              <div className={`w-14 h-14 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center mb-10 transition-all duration-500 group-hover:scale-110 group-hover:bg-primary-500 group-hover:text-white shadow-sm border border-slate-100 dark:border-slate-800`}>
                 <f.icon className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{f.title}</h3>
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{f.desc}</p>
-            </motion.div>
+              <h3 className="text-2xl font-bold mb-4 tracking-tight leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">{f.title}</h3>
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">{f.desc}</p>
+            </Card>
           ))}
         </div>
       </section>
 
-      {/* Mechanics Explanation View */}
-      <section className="py-24 px-6 max-w-7xl mx-auto border-t border-gray-100 dark:border-gray-800">
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">How it works</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
-          <div className="hidden md:block absolute top-8 left-[15%] right-[15%] h-0.5 bg-gradient-to-r from-gray-200 via-primary-300 to-gray-200 dark:from-gray-700 dark:via-primary-800 dark:to-gray-700 z-0"></div>
-          {steps.map((s, i) => (
-            <div key={i} className="relative z-10 text-center">
-              <div className="w-16 h-16 mx-auto bg-white dark:bg-gray-900 border-4 border-gray-50 dark:border-gray-800 shadow-xl rounded-full flex items-center justify-center text-xl font-black text-primary-600 mb-6">
-                {s.num}
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">{s.title}</h3>
-              <p className="text-gray-600 dark:text-gray-400">{s.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* CTA Section */}
+      <section className="py-32 bg-slate-950 dark:bg-slate-900/40 overflow-hidden relative border-t border-slate-800/50">
+        <div className="absolute top-0 right-0 w-1/2 h-full bg-primary-600/10 blur-[120px] rounded-full"></div>
+        <div className="absolute bottom-0 left-[-10%] w-1/3 h-full bg-indigo-600/10 blur-[100px] rounded-full"></div>
 
-      {/* Pricing Cards */}
-      <section id="pricing" className="bg-gray-50 dark:bg-gray-800/50 py-24">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Simple, transparent pricing</h2>
-            <p className="text-gray-600 dark:text-gray-400">Start for free, upgrade when you need more power.</p>
-          </div>
+        <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
+          <h2 className="text-white mb-8 !leading-[1.1]">Ready to land your next <br /> <span className="text-primary-400 underline decoration-primary-400/30 decoration-8 underline-offset-8">career upgrade?</span></h2>
+          <p className="text-slate-400 text-xl mb-12 font-medium max-w-2xl mx-auto">Join 100,000+ professionals who beat the odds and skipped the line to their dream roles using our platform.</p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Free Tier */}
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-700">
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Free</h3>
-              <p className="text-gray-500 mb-6">Perfect for getting started.</p>
-              <div className="text-4xl font-black text-gray-900 dark:text-white mb-8">$0 <span className="text-lg text-gray-500 font-medium">/ forever</span></div>
-              <ul className="space-y-4 mb-8">
-                {['1 Resume', 'Standard Templates', 'Basic PDF Export', '7 Days AI Trial'].map((f, i) => (
-                  <li key={i} className="flex items-center gap-3 text-gray-700 dark:text-gray-300">
-                    <FiCheck className="text-primary-500" /> {f}
-                  </li>
-                ))}
-              </ul>
-              <Button variant="secondary" className="w-full justify-center">Current Plan</Button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+            <Button 
+              size="lg" 
+              onClick={() => navigate('/signup')}
+              className="shadow-2xl shadow-primary-500/50 min-w-[220px]"
+            >
+              Start Building Now
+            </Button>
+            <div className="flex items-center gap-2 group cursor-pointer" onClick={() => navigate('/templates')}>
+                <span className="text-white font-bold text-sm border-b border-white/20 group-hover:border-white transition-all">View Premium Templates</span>
+                <FiArrowRight className="text-white group-hover:translate-x-1 transition-transform" />
             </div>
+          </div>
 
-            {/* Pro Tier Block */}
-            <div className="bg-gray-900 dark:bg-gray-800 p-8 rounded-3xl shadow-2xl shadow-primary-500/20 border border-gray-800 dark:border-primary-500/30 relative overflow-hidden transform md:-translate-y-4">
-              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary-500 to-accent-500"></div>
-              <div className="absolute top-6 right-6 px-3 py-1 bg-primary-500 text-white text-xs font-bold rounded-full uppercase tracking-wider">Most Popular</div>
-              
-              <h3 className="text-2xl font-bold text-white mb-2">Pro</h3>
-              <p className="text-gray-400 mb-6">For serious job seekers.</p>
-              <div className="text-4xl font-black text-white mb-8">$12 <span className="text-lg text-gray-400 font-medium">/ month</span></div>
-              <ul className="space-y-4 mb-8">
-                {['Unlimited Resumes', 'Premium Templates', 'Unlimited AI Generations', 'Advanced Formats (Word)', 'Cover Letter Builder'].map((f, i) => (
-                  <li key={i} className="flex items-center gap-3 text-gray-300">
-                    <FiCheck className="text-primary-400" /> {f}
-                  </li>
-                ))}
-              </ul>
-              <Button variant="primary" className="w-full justify-center text-white bg-primary-600 hover:bg-primary-500">Upgrade to Pro</Button>
-            </div>
+          <div className="mt-16 flex items-center justify-center gap-8 opacity-40 grayscale group-hover:grayscale-0 transition-all duration-500">
+             <FiShield className="text-white w-6 h-6" />
+             <span className="text-white text-[10px] font-bold uppercase tracking-[0.2em]">100% Privacy Secured</span>
           </div>
         </div>
       </section>

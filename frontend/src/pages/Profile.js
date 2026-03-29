@@ -7,7 +7,7 @@ import {
   FiDollarSign, FiClock, FiCheckCircle
 } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
-import { profileAPI, resumeAI } from '../utils/api';
+import { profileAPI, resumeAI, BASE_URL } from '../utils/api';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
@@ -368,7 +368,7 @@ const Profile = () => {
                 <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white dark:border-slate-700 shadow-xl group-hover:scale-105 transition-transform duration-300">
                   {previewImage || profileData.profileImage ? (
                     <img 
-                      src={previewImage || (profileData.profileImage?.startsWith('http') ? profileData.profileImage : `http://localhost:5000${profileData.profileImage}`)} 
+                      src={previewImage || (profileData.profileImage?.startsWith('http') ? profileData.profileImage : `${BASE_URL}${profileData.profileImage}`)} 
                       alt="Profile" 
                       className="w-full h-full object-cover" 
                     />

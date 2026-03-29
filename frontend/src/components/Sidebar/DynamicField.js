@@ -1,5 +1,7 @@
 import React from 'react';
 import { FiPlus, FiTrash2, FiZap, FiLoader } from 'react-icons/fi';
+import { Input } from '../ui/Input';
+import { Button } from '../ui/Button';
 
 export const DynamicField = ({ field, value, onChange, onAIAssist, activeAIField }) => {
   const { type, name, label, placeholder } = field;
@@ -7,16 +9,17 @@ export const DynamicField = ({ field, value, onChange, onAIAssist, activeAIField
 
   if (type === 'textarea') {
     return (
-      <div className="space-y-1">
+      <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{label}</label>
+          <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{label}</label>
           <button 
+            type="button"
             onClick={() => onAIAssist(name)}
             disabled={isAssisting}
-            className={`flex items-center gap-1 text-[10px] font-bold uppercase transition-all ${isAssisting ? 'text-primary-400' : 'text-primary-600 hover:text-primary-700'}`}
+            className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-all px-2 py-1 rounded-md ${isAssisting ? 'text-primary-400 bg-primary-50/50' : 'text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20'}`}
           >
-            {isAssisting ? <FiLoader className="animate-spin" /> : <FiZap />}
-            {isAssisting ? 'Thinking...' : 'AI Assist'}
+            {isAssisting ? <FiLoader className="animate-spin w-3 h-3" /> : <FiZap className="w-3 h-3" />}
+            {isAssisting ? 'Analyzing...' : 'AI Assist'}
           </button>
         </div>
         <textarea
@@ -25,7 +28,7 @@ export const DynamicField = ({ field, value, onChange, onAIAssist, activeAIField
           onChange={(e) => onChange(name, e.target.value)}
           placeholder={placeholder}
           rows={4}
-          className="w-full text-sm p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900/50 focus:border-primary-500 outline-none transition-all resize-none"
+          className="w-full text-sm font-medium p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-900/50 focus:bg-white dark:focus:bg-slate-900 border-b-2 focus:border-b-primary-500 outline-none transition-all resize-none placeholder:text-slate-400"
         />
       </div>
     );
@@ -34,27 +37,28 @@ export const DynamicField = ({ field, value, onChange, onAIAssist, activeAIField
   const showAI = ['jobTitle', 'role', 'currentRole', 'company', 'location'].includes(name);
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{label}</label>
+        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{label}</label>
         {showAI && (
           <button 
+            type="button"
             onClick={() => onAIAssist(name)}
             disabled={isAssisting}
-            className={`flex items-center gap-1 text-[10px] font-bold uppercase transition-all ${isAssisting ? 'text-primary-400' : 'text-primary-600 hover:text-primary-700'}`}
+            className={`flex items-center gap-1 text-[10px] font-bold uppercase transition-all px-2 py-1 rounded-md ${isAssisting ? 'text-primary-400' : 'text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20'}`}
           >
             {isAssisting ? <FiLoader className="animate-spin" /> : <FiZap />}
             AI
           </button>
         )}
       </div>
-      <input
+      <Input
         type={type || 'text'}
         name={name}
         value={value || ''}
         onChange={(e) => onChange(name, e.target.value)}
         placeholder={placeholder}
-        className="w-full text-sm p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900/50 focus:border-primary-500 outline-none transition-all"
+        className="text-sm font-medium"
       />
     </div>
   );
@@ -79,17 +83,20 @@ export const ListField = ({ section, values, onChange, onAIAssist, activeAIField
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-10">
       {items.map((item, index) => (
-        <div key={index} className="p-4 border border-gray-100 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 shadow-sm relative group">
-          <button 
-            onClick={() => handleRemoveItem(index)}
-            className="absolute -top-2 -right-2 bg-red-100 text-red-600 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm z-10"
-          >
-            <FiTrash2 className="w-3.5 h-3.5" />
-          </button>
+        <div key={index} className="relative group/list-item">
+          {items.length > 1 && (
+            <button 
+              type="button"
+              onClick={() => handleRemoveItem(index)}
+              className="absolute -top-3 -right-3 bg-white dark:bg-slate-800 text-rose-500 p-2 rounded-xl opacity-0 group-hover/list-item:opacity-100 transition-all shadow-xl hover:bg-rose-50 z-20 border border-slate-100 dark:border-slate-800"
+            >
+              <FiTrash2 className="w-4 h-4" />
+            </button>
+          )}
           
-          <div className="space-y-3">
+          <div className="space-y-6">
             {section.fields.map((field) => (
               <DynamicField 
                 key={field.name}
@@ -101,15 +108,20 @@ export const ListField = ({ section, values, onChange, onAIAssist, activeAIField
               />
             ))}
           </div>
+          
+          {index < items.length - 1 && (
+            <div className="mt-10 border-b border-dashed border-slate-200 dark:border-slate-800"></div>
+          )}
         </div>
       ))}
       
-      <button 
+      <Button 
+        variant="secondary"
         onClick={handleAddItem}
-        className="w-full py-3 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl text-gray-400 hover:text-primary-500 hover:border-primary-500 transition-all flex items-center justify-center gap-2 text-sm font-bold"
+        className="w-full !py-4 border-2 border-dashed border-slate-200 dark:border-slate-800 bg-transparent text-slate-400 hover:text-primary-500 hover:border-primary-500 hover:bg-primary-50/10 transition-all font-bold text-xs"
       >
-        <FiPlus /> Add {section.label.replace('Information', '').trim()} Item
-      </button>
+        <FiPlus className="mr-2" /> Add {section.label}
+      </Button>
     </div>
   );
 };
@@ -133,44 +145,48 @@ export const TagsField = ({ section, value, onChange, onAIAssist, activeAIField 
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between mb-1">
-        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Current Skills</label>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Active Skills</label>
         <button 
+          type="button"
           onClick={() => onAIAssist('skills')}
           disabled={isAssisting}
-          className={`flex items-center gap-1 text-[10px] font-bold uppercase transition-all ${isAssisting ? 'text-primary-400' : 'text-primary-600 hover:text-primary-700'}`}
+          className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider transition-all px-2 py-1 rounded-md ${isAssisting ? 'text-primary-400' : 'text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20'}`}
         >
-          {isAssisting ? <FiLoader className="animate-spin" /> : <FiZap />}
-          {isAssisting ? 'Analyzing...' : 'Suggest Skills'}
+          {isAssisting ? <FiLoader className="animate-spin w-3 h-3" /> : <FiZap className="w-3 h-3" />}
+          {isAssisting ? 'Curating...' : 'AI Suggest'}
         </button>
       </div>
-      <div className="flex flex-wrap gap-2">
+      
+      <div className="flex flex-wrap gap-2 min-h-[40px] p-4 bg-slate-50/50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
         {tags.map((tag, i) => (
-          <span key={i} className="px-2.5 py-1 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 text-xs font-bold rounded-lg flex items-center gap-1.5 border border-primary-100 dark:border-primary-800">
+          <span key={i} className="px-3 py-1.5 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[10px] font-bold rounded-xl flex items-center gap-2 border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:scale-105">
             {tag}
-            <button onClick={() => handleRemoveTag(tag)} className="hover:text-red-500 transition-colors">
+            <button type="button" onClick={() => handleRemoveTag(tag)} className="text-slate-400 hover:text-rose-500 transition-colors">
               <FiTrash2 className="w-3 h-3" />
             </button>
           </span>
         ))}
-        {tags.length === 0 && <p className="text-xs text-gray-400 italic">No skills added yet...</p>}
+        {tags.length === 0 && <p className="text-[10px] text-slate-400 font-medium m-0 flex items-center">No skills listed yet.</p>}
       </div>
+
       <div className="flex gap-2">
-        <input 
+        <Input 
           type="text" 
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
-          placeholder="Add a skill (e.g. React)..."
-          className="flex-1 text-sm p-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-900/50 focus:border-primary-500 outline-none transition-all"
+          placeholder="New Skill..."
+          className="flex-1 text-xs"
         />
-        <button 
+        <Button 
           onClick={handleAddTag}
-          className="bg-primary-600 text-white p-3 rounded-xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-500/20"
+          size="sm"
+          className="shrink-0 rounded-2xl"
         >
           <FiPlus />
-        </button>
+        </Button>
       </div>
     </div>
   );

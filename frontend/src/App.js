@@ -16,6 +16,7 @@ import About from './pages/About';
 import Resources from './pages/Resources';
 import ResourceDetails from './pages/ResourceDetails';
 import { SearchProvider } from './context/SearchContext';
+import { ToastProvider } from './context/ToastContext';
 import ChatWidget from './components/ChatWidget';
 
 // Protected Route wrapper
@@ -31,136 +32,138 @@ const ProtectedRoute = ({ children, withLayout = true }) => {
 
 function App() {
   return (
-    <SearchProvider>
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <div className="App">
-          <Routes>
-            <Route 
-              path="/login" 
-              element={
-                <PageTransition>
-                  <Login />
-                </PageTransition>
-              } 
-            />
-            <Route 
-              path="/signup" 
-              element={
-                <PageTransition>
-                  <Signup />
-                </PageTransition>
-              } 
-            />
-            <Route 
-              path="/forgot-password" 
-              element={
-                <PageTransition>
-                  <ForgotPassword />
-                </PageTransition>
-              } 
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
+    <ToastProvider>
+      <SearchProvider>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <div className="App overflow-x-hidden transition-colors duration-300 min-h-screen bg-gray-50 dark:bg-gray-900">
+            <Routes>
+              <Route 
+                path="/login" 
+                element={
                   <PageTransition>
-                    <Dashboard />
+                    <Login />
                   </PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/builder"
-              element={
-                <ProtectedRoute withLayout={false}>
+                } 
+              />
+              <Route 
+                path="/signup" 
+                element={
                   <PageTransition>
-                    <ResumeBuilder />
+                    <Signup />
                   </PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/resumes"
-              element={
-                <ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/forgot-password" 
+                element={
                   <PageTransition>
-                    <ResumeList />
+                    <ForgotPassword />
                   </PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/ai-tools"
-              element={
-                <ProtectedRoute>
+                } 
+              />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition>
+                      <Dashboard />
+                    </PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/builder"
+                element={
+                  <ProtectedRoute withLayout={false}>
+                    <PageTransition>
+                      <ResumeBuilder />
+                    </PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/resumes"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition>
+                      <ResumeList />
+                    </PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/ai-tools"
+                element={
+                  <ProtectedRoute>
+                    <PageTransition>
+                      <AIToolsDashboard />
+                    </PageTransition>
+                  </ProtectedRoute>
+                }
+              />
+              <Route 
+                path="/templates" 
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><Templates /></PageTransition>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/profile" 
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><Profile /></PageTransition>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/settings" 
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><Settings /></PageTransition>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/about" 
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><About /></PageTransition>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/resources" 
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><Resources /></PageTransition>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/resources/:id" 
+                element={
+                  <ProtectedRoute>
+                    <PageTransition><ResourceDetails /></PageTransition>
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/" 
+                element={
                   <PageTransition>
-                    <AIToolsDashboard />
+                    <Landing />
                   </PageTransition>
-                </ProtectedRoute>
-              }
-            />
-            <Route 
-              path="/templates" 
-              element={
-                <ProtectedRoute>
-                  <PageTransition><Templates /></PageTransition>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/profile" 
-              element={
-                <ProtectedRoute>
-                  <PageTransition><Profile /></PageTransition>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/settings" 
-              element={
-                <ProtectedRoute>
-                  <PageTransition><Settings /></PageTransition>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/about" 
-              element={
-                <ProtectedRoute>
-                  <PageTransition><About /></PageTransition>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/resources" 
-              element={
-                <ProtectedRoute>
-                  <PageTransition><Resources /></PageTransition>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/resources/:id" 
-              element={
-                <ProtectedRoute>
-                  <PageTransition><ResourceDetails /></PageTransition>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/" 
-              element={
-                <PageTransition>
-                  <Landing />
-                </PageTransition>
-              } 
-            />
-          </Routes>
-          {/* Resume Copilot — floating AI assistant (visible when logged in) */}
-          {localStorage.getItem('token') && <ChatWidget />}
-        </div>
-      </Router>
-    </SearchProvider>
+                } 
+              />
+            </Routes>
+            {/* Resume Copilot — floating AI assistant (visible when logged in) */}
+            {localStorage.getItem('token') && <ChatWidget />}
+          </div>
+        </Router>
+      </SearchProvider>
+    </ToastProvider>
   );
 }
 

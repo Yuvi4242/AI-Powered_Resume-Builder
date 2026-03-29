@@ -24,7 +24,7 @@ const DynamicForm = ({ schema, formData, onChange, onAIAssist, activeAIField }) 
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {schema.sections.map((section) => {
         const Icon = iconMap[section.icon] || FiUser;
         const isActive = activeSection === section.id;
@@ -32,31 +32,33 @@ const DynamicForm = ({ schema, formData, onChange, onAIAssist, activeAIField }) 
         return (
           <div 
             key={section.id} 
-            className={`border rounded-2xl transition-all duration-300 ${isActive ? 'bg-white dark:bg-gray-800 border-primary-200 dark:border-primary-900 shadow-xl shadow-primary-500/5' : 'bg-gray-50 dark:bg-gray-900/40 border-gray-100 dark:border-gray-800'}`}
+            className={`rounded-3xl transition-all duration-500 overflow-hidden ${isActive ? 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl shadow-primary-500/10' : 'bg-slate-50/50 dark:bg-slate-900/30 border border-transparent'}`}
           >
             <button
               onClick={() => handleToggle(section.id)}
-              className={`w-full flex items-center justify-between p-4 px-5 text-sm font-bold transition-all ${isActive ? 'text-primary-600' : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'}`}
+              className={`w-full flex items-center justify-between p-6 text-sm font-bold transition-all ${isActive ? 'text-primary-600' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'}`}
             >
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-xl transition-colors ${isActive ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600' : 'bg-white dark:bg-gray-800 text-gray-400 group-hover:text-gray-600'}`}>
-                  <Icon className="w-5 h-5" />
+              <div className="flex items-center gap-4">
+                <div className={`p-3 rounded-2xl transition-all duration-500 ${isActive ? 'bg-primary-500 text-white shadow-xl shadow-primary-500/30 rotate-0' : 'bg-white dark:bg-slate-800 text-slate-400 group-hover:text-slate-600 shadow-sm'}`}>
+                  <Icon className="w-5 h-5 transition-transform" />
                 </div>
-                {section.label}
+                <div className="flex flex-col items-start">
+                   <span className="text-sm font-bold tracking-tight">{section.label}</span>
+                   {isActive && <span className="text-[9px] font-black uppercase tracking-[0.2em] text-primary-400/80 mt-1">Active Section</span>}
+                </div>
               </div>
-              <FiChevronDown className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'rotate-180' : ''}`} />
+              <FiChevronDown className={`w-5 h-5 transition-all duration-500 ${isActive ? 'rotate-180 text-primary-500' : 'text-slate-300'}`} />
             </button>
 
-            <AnimatePresence>
+            <AnimatePresence initial={false}>
               {isActive && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3, ease: 'easeInOut' }}
-                  className="overflow-hidden"
+                  transition={{ duration: 0.5, ease: [0.04, 0.62, 0.23, 0.98] }}
                 >
-                  <div className="p-5 pt-1 space-y-6 border-t border-gray-50 dark:border-gray-700/50 mt-1">
+                  <div className="p-6 pt-2 space-y-10 border-t border-slate-100 dark:border-slate-800/50">
                     {section.type === 'list' ? (
                       <ListField 
                         section={section} 
@@ -74,7 +76,7 @@ const DynamicForm = ({ schema, formData, onChange, onAIAssist, activeAIField }) 
                         activeAIField={activeAIField}
                       />
                     ) : (
-                      <div className="space-y-4">
+                      <div className="space-y-8">
                         {section.fields?.map((field) => (
                           <DynamicField 
                             key={field.name} 

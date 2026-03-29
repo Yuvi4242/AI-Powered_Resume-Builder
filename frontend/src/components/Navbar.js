@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSearch, FiBell, FiMenu, FiX, FiUser, FiLogOut, FiMoon, FiSun, FiSettings } from 'react-icons/fi';
+import { FiSearch, FiBell, FiMenu, FiX, FiUser, FiLogOut, FiMoon, FiSun, FiSettings, FiActivity, FiChevronDown } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { removeToken } from '../utils/api';
 import { useSearch } from '../context/SearchContext';
@@ -42,45 +42,49 @@ const Navbar = ({ title, onMenuToggle, isSidebarOpen }) => {
   };
 
   return (
-    <nav className="bg-white/90 backdrop-blur-md border-b border-gray-200 dark:bg-gray-900/90 dark:border-gray-800 px-6 py-3.5 sticky top-0 z-40">
-      <div className="flex items-center justify-between">
+    <nav className="fixed top-0 inset-x-0 h-20 bg-white/70 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/50 z-50 transition-all duration-300">
+      <div className="max-w-[1500px] mx-auto h-full px-6 flex items-center justify-between">
         
-        {/* Left: Mobile Toggle & Search */}
-        <div className="flex items-center gap-4 flex-1">
-          <button
-            onClick={onMenuToggle}
-            className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors lg:hidden"
-          >
-            {isSidebarOpen ? <FiX size={20} /> : <FiMenu size={20} />}
-          </button>
-
-          <div className="flex lg:hidden mr-2">
-            <Logo className="scale-90 origin-left" />
+        {/* Left: Mobile Toggle & Branding/Search */}
+        <div className="flex items-center gap-8 flex-1">
+          <div className="flex items-center gap-4">
+             <button
+                onClick={onMenuToggle}
+                className="p-2.5 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all lg:hidden"
+             >
+                {isSidebarOpen ? <FiX size={20} /> : <FiMenu size={20} />}
+             </button>
+             <Logo className="hidden lg:block shrink-0" />
           </div>
           
-          <div className="hidden md:flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2 w-64 lg:w-96 transition-all focus-within:ring-2 focus-within:ring-primary-500/50 focus-within:bg-white dark:focus-within:bg-gray-900 border border-transparent focus-within:border-primary-200 dark:focus-within:border-primary-800 shadow-sm">
-            <FiSearch className="text-gray-400 w-4 h-4" />
+          <div className="hidden md:flex items-center bg-slate-100/50 dark:bg-slate-800/40 rounded-2xl px-4 py-2.5 w-64 lg:w-[400px] transition-all focus-within:bg-white dark:focus-within:bg-slate-900 border border-transparent focus-within:border-primary-500/30 shadow-sm group">
+            <FiSearch className="text-slate-400 w-4 h-4 group-focus-within:text-primary-500 transition-colors" />
             <input 
               type="text" 
-              placeholder="Search resumes, templates..." 
+              placeholder="Search resumes, templates or tools..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent border-none outline-none text-sm text-gray-800 dark:text-gray-200 ml-2 w-full placeholder-gray-500"
+              className="bg-transparent border-none outline-none text-xs font-bold text-slate-800 dark:text-slate-200 ml-3 w-full placeholder-slate-400 uppercase tracking-widest"
             />
           </div>
         </div>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-4">
+        {/* Right: Actions & Tools */}
+        <div className="flex items-center gap-2 lg:gap-5">
           
           {/* Notifications */}
           <div className="relative" ref={notificationsRef}>
             <button 
               onClick={() => { setShowNotifications(!showNotifications); setHasNewNotifications(false); }}
-              className="relative p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white rounded-full transition-colors"
+              className={`relative p-3 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all ${showNotifications ? 'bg-slate-100 dark:bg-slate-800 text-primary-500' : ''}`}
             >
               <FiBell size={20} />
-              {hasNewNotifications && <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-red-500 shadow-sm border border-white dark:border-gray-900 rounded-full">2</span>}
+              {hasNewNotifications && (
+                <span className="absolute top-2.5 right-2.5 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
+                </span>
+              )}
             </button>
             <AnimatePresence>
               {showNotifications && (
@@ -88,20 +92,22 @@ const Navbar = ({ title, onMenuToggle, isSidebarOpen }) => {
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute right-0 mt-3 w-72 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 py-2 overflow-hidden"
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="absolute right-0 mt-4 w-80 bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 p-2 z-50"
                 >
-                  <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
-                    <p className="font-semibold text-gray-900 dark:text-white">Notifications</p>
+                  <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Activity Stream</p>
+                    <span className="text-[10px] text-primary-500 font-bold hover:underline cursor-pointer">Mark all read</span>
                   </div>
-                  <div className="py-1 max-h-64 overflow-y-auto">
-                    <div className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer border-b border-gray-50 dark:border-gray-700/50 transition-colors">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">Resume saved</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Your latest changes to "Product Manager" were saved.</p>
-                    </div>
-                    <div className="px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">AI summary generated</p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">We successfully optimized your summary section.</p>
+                  <div className="py-2 max-h-80 overflow-y-auto custom-scrollbar">
+                    <div className="px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer rounded-2xl transition-all group">
+                      <div className="flex gap-3">
+                         <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 rounded-lg h-fit group-hover:scale-110 transition-transform"><FiActivity className="w-4 h-4" /></div>
+                         <div>
+                            <p className="text-[11px] font-bold text-slate-900 dark:text-white uppercase tracking-tight">System Update</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium leading-relaxed">Your "Product Manager" resume was successfully synced to the cloud.</p>
+                         </div>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -112,53 +118,63 @@ const Navbar = ({ title, onMenuToggle, isSidebarOpen }) => {
           {/* Theme Toggle */}
           <button
             onClick={toggleDarkMode}
-            className="p-2 text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+            className="p-3 text-slate-500 hover:text-primary-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all"
           >
             {darkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
           </button>
 
-          <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 hidden sm:block"></div>
+          <div className="w-px h-8 bg-slate-200 dark:bg-slate-800 hidden sm:block mx-1"></div>
 
-          {/* Profile Dropdown */}
+          {/* Profile Quick Profile Navigation */}
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setShowProfile(!showProfile)}
-              className="flex items-center gap-2.5 p-1 rounded-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+              className={`flex items-center gap-3 pl-1.5 pr-3 py-1.5 rounded-2xl transition-all border ${showProfile ? 'border-primary-500/30 bg-primary-50/10' : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-800'}`}
             >
-              <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-600 rounded-full flex items-center justify-center text-white font-medium text-sm shadow-sm ring-2 ring-white dark:ring-gray-900">
-                {user.name ? user.name.charAt(0).toUpperCase() : 'J'}
+              <div className="w-9 h-9 bg-gradient-to-br from-primary-500 to-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-xl shadow-primary-500/20 ring-2 ring-white dark:ring-slate-900">
+                {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
               </div>
-              <div className="hidden sm:block text-left text-sm leading-tight">
-                <p className="font-semibold text-gray-900 dark:text-white">{user.name || 'Jane Doe'}</p>
+              <div className="hidden sm:flex flex-col items-start leading-none gap-1">
+                 <span className="text-xs font-bold text-slate-900 dark:text-white">{(user.name || 'User').split(' ')[0]}</span>
+                 <span className="text-[9px] font-black uppercase tracking-[0.1em] text-slate-400">Pro Tier</span>
               </div>
+              <FiChevronDown className={`w-3 h-3 text-slate-300 transition-transform duration-300 ${showProfile ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Dropdown Menu */}
-            <AnimatePresence>
+            <AnimatePresence mode="wait">
               {showProfile && (
                 <motion.div
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute right-0 mt-3 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 py-2 overflow-hidden"
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                  className="absolute right-0 mt-4 w-60 bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl border border-slate-100 dark:border-slate-800 p-2 z-50 overflow-hidden"
                 >
-                  <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                    <p className="font-medium text-gray-900 dark:text-white">{user.name || 'Jane Doe'}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email || 'jane@resumecraft.ai'}</p>
+                  <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">User Menu</p>
+                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{user.email || 'user@resumecraft.ai'}</p>
                   </div>
-                  <div className="py-1">
-                    <button onClick={() => navigate('/profile')} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                      <FiUser size={16} />
-                      Profile
-                    </button>
-                    <button onClick={() => navigate('/settings')} className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                      <FiSettings size={16} />
-                      Settings
-                    </button>
+                  <div className="py-2 space-y-1">
+                    {[
+                      { icon: FiUser, label: 'Profile Settings', path: '/profile' },
+                      { icon: FiSettings, label: 'Preferences', path: '/settings' },
+                    ].map((item, i) => (
+                      <button 
+                        key={i}
+                        onClick={() => { navigate(item.path); setShowProfile(false); }} 
+                        className="w-full flex items-center gap-3 px-5 py-3 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:text-primary-600 rounded-2xl transition-all"
+                      >
+                        <item.icon size={16} />
+                        {item.label}
+                      </button>
+                    ))}
+                    
+                    <div className="border-t border-slate-100 dark:border-slate-800 my-2"></div>
+                    
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
+                      className="w-full flex items-center gap-3 px-5 py-3 text-xs font-bold text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-2xl transition-all"
                     >
                       <FiLogOut size={16} />
                       Sign Out

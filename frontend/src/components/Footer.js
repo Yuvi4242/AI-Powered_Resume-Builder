@@ -1,95 +1,109 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaLinkedin, FaGithub, FaInstagram, FaWhatsapp } from 'react-icons/fa';
+import { FiLinkedin, FiGithub, FiInstagram, FiTwitter, FiHeart, FiZap } from 'react-icons/fi';
+import Logo from './Logo';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   const socialLinks = [
-    { icon: FaLinkedin, url: 'https://linkedin.com/in/yuvi42', color: 'hover:text-[#0077B5]' },
-    { icon: FaGithub, url: 'https://github.com/yuvi4242', color: 'hover:text-[#333]' },
-    { icon: FaInstagram, url: 'https://instagram.com/yuvraj_42_', color: 'hover:text-[#E4405F]' },
-    { icon: FaWhatsapp, url: 'https://wa.me/+916353768151', color: 'hover:text-[#25D366]' },
+    { icon: FiLinkedin, url: 'https://linkedin.com/in/yuvi42', color: 'hover:text-[#0077B5]' },
+    { icon: FiGithub, url: 'https://github.com/yuvi4242', color: 'hover:text-white' },
+    { icon: FiInstagram, url: 'https://instagram.com/yuvraj_42_', color: 'hover:text-[#E4405F]' },
+    { icon: FiTwitter, url: 'https://twitter.com', color: 'hover:text-[#1DA1F2]' },
   ];
 
-  const navLinks = [
-    { label: 'Home', path: '/' },
-    { label: 'Dashboard', path: '/dashboard' },
-    { label: 'Templates', path: '/templates' },
-    { label: 'About', path: '/about' },
-    { label: 'Contact', path: '/contact' },
+  const sections = [
+    {
+      title: 'Platform',
+      links: [
+        { label: 'AI Builder', path: '/builder' },
+        { label: 'Templates', path: '/templates' },
+        { label: 'ATS Scanner', path: '/dashboard' },
+        { label: 'Pricing', path: '#' },
+      ]
+    },
+    {
+      title: 'Company',
+      links: [
+        { label: 'About Us', path: '/about' },
+        { label: 'Success Stories', path: '#' },
+        { label: 'Privacy Policy', path: '#' },
+        { label: 'Contact', path: '/contact' },
+      ]
+    }
   ];
 
   return (
-    <footer className="relative bg-gray-900 text-white pt-16 pb-8 px-6 overflow-hidden">
-      {/* Glassmorphism Background Decoration */}
+    <footer className="relative bg-slate-950 text-white pt-24 pb-12 px-6 overflow-hidden border-t border-slate-900">
+      {/* Premium Background Atmosphere */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-20">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary-600 blur-[120px] rounded-full"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent-500 blur-[120px] rounded-full"></div>
+        <div className="absolute top-[-10%] left-[-5%] w-[30%] h-[50%] bg-primary-600/30 blur-[120px] rounded-full"></div>
+        <div className="absolute bottom-[-10%] right-[-5%] w-[30%] h-[50%] bg-indigo-600/20 blur-[120px] rounded-full"></div>
       </div>
 
-      <div className="max-w-7xl mx-auto relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+      <div className="max-w-[1500px] mx-auto relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16 mb-20">
           
-          {/* LEFT: Brand & Description */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center shadow-lg text-white font-bold text-lg">R</div>
-              <span className="text-2xl font-bold tracking-tight">AI Resume <span className="text-primary-500">Builder</span></span>
-            </div>
-            <p className="text-gray-400 max-w-sm leading-relaxed">
-              Build professional, ATS-optimized resumes effortlessly using our advanced AI technology. Land your dream job faster with ResumeCraft.
+          {/* LEFT: Brand Intelligence */}
+          <div className="lg:col-span-2 space-y-8">
+            <Logo />
+            <p className="text-slate-400 max-w-sm text-sm font-medium leading-relaxed">
+              Empowering 100,000+ professionals to bypass generic applications and land their dream roles using recruiter-calibrated AI intelligence.
             </p>
-          </div>
-
-          {/* CENTER: Navigation Links */}
-          <div className="md:text-center">
-            <h3 className="text-lg font-bold mb-6 text-white uppercase tracking-wider">Quick Links</h3>
-            <ul className="grid grid-cols-2 md:grid-cols-1 gap-3">
-              {navLinks.map((link) => (
-                <li key={link.label}>
-                  <Link 
-                    to={link.path} 
-                    className="text-gray-400 hover:text-primary-500 transition-all duration-300 hover:translate-x-1 md:hover:translate-x-0 inline-block"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* RIGHT: Social Connect */}
-          <div className="md:text-right">
-            <h3 className="text-lg font-bold mb-6 text-white uppercase tracking-wider">Connect With Me</h3>
-            <div className="flex items-center md:justify-end gap-4">
+            <div className="flex items-center gap-4">
               {socialLinks.map((social, index) => (
                 <a 
                   key={index}
                   href={social.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`w-11 h-11 bg-gray-800 rounded-xl flex items-center justify-center text-xl transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-primary-500/20 border border-gray-700 ${social.color}`}
+                  className={`w-10 h-10 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-center text-lg text-slate-400 transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:shadow-primary-500/20 ${social.color}`}
                 >
-                  <social.icon />
+                  <social.icon size={18} />
                 </a>
               ))}
             </div>
-            <p className="mt-6 text-sm text-gray-500">
-              Follow me for updates and tips.
-            </p>
           </div>
+
+          {/* MIDDLE: Links Arrays */}
+          {sections.map((section, i) => (
+            <div key={i}>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white mb-8">{section.title}</h3>
+                <ul className="space-y-4">
+                  {section.links.map((link) => (
+                    <li key={link.label}>
+                      <Link 
+                        to={link.path} 
+                        className="text-xs font-bold text-slate-500 hover:text-primary-400 transition-all duration-300 flex items-center group"
+                      >
+                        <span className="w-0 group-hover:w-2 h-px bg-primary-500 mr-0 group-hover:mr-2 transition-all"></span>
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+            </div>
+          ))}
         </div>
 
         {/* Divider Line */}
-        <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-700 to-transparent mb-8"></div>
+        <div className="h-px w-full bg-gradient-to-r from-transparent via-slate-800 to-transparent mb-12"></div>
 
-        {/* BOTTOM SECTION: Copyright & Attribution */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
-          <p>© {currentYear} AI Resume Builder. All rights reserved.</p>
-          <p className="flex items-center gap-1">
-            Made with <span className="text-red-500 animate-pulse text-lg">⚡︎</span> by <span className="font-bold text-gray-300">Alpha</span>
-          </p>
+        {/* BOTTOM SECTION: Attribution Feed */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex flex-col md:flex-row items-center gap-2 md:gap-8 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
+             <p>© {currentYear} ResumeCraft AI</p>
+             <span className="hidden md:block w-1.5 h-1.5 rounded-full bg-slate-800"></span>
+             <p className="flex items-center gap-2">
+                <FiZap className="text-primary-500" /> System: Stable v4.2.0
+             </p>
+          </div>
+          
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-500">
+             Made with <FiHeart className="text-rose-500 fill-rose-500 animate-pulse" /> by 
+             <span className="text-white hover:text-primary-500 transition-colors cursor-pointer">Alpha</span>
+          </div>
         </div>
       </div>
     </footer>
