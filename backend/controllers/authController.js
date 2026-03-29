@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const Otp = require('../models/Otp');
-const { sendEmailOTP } = require('../services/emailService');
+const { sendOtpEmail } = require('../utils/sendEmail');
 const { signAccessToken } = require('../utils/jwt');
 
 // Generate 6-digit OTP
@@ -80,7 +80,7 @@ const signupOTP = async (req, res) => {
 
     // Send OTP via email
     try {
-      await sendEmailOTP(email, otp);
+      await sendOtpEmail(email, otp);
     } catch (error) {
       console.error('Email sending failed:', error.message);
       return res.status(500).json({
@@ -258,7 +258,7 @@ const forgotPassword = async (req, res) => {
 
     // Send OTP via email
     try {
-      await sendEmailOTP(email, otp, 'Password Reset');
+      await sendOtpEmail(email, otp);
     } catch (error) {
       console.error('Email sending failed:', error.message);
     }
