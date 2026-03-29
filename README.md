@@ -34,6 +34,29 @@ A high-performance, full-stack web application designed to help professionals cr
 
 ---
 
+## 📸 Screenshots
+A quick visual overview of the application interface and key user flows.
+
+### Home / Landing Page
+![Home Page](./screenshots/home.png)
+
+### Login Page
+![Login Page](./screenshots/login.png)
+
+### Signup / OTP Page
+![Signup Page](./screenshots/signup.png)
+
+### Resume Builder Dashboard
+![Resume Builder](./screenshots/dashboard.png)
+
+### AI Resume Assistant / Tool
+![AI Tool](./screenshots/ai-tool.png)
+
+### Profile / User Section
+![Profile Page](./screenshots/profile.png)
+
+---
+
 ## 🛠️ Tech Stack
 
 ### Frontend
