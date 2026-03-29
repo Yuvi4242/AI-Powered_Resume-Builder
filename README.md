@@ -4,6 +4,9 @@ A premium, production-ready MERN stack application designed to help professional
 
 ![Landing Preview](https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=1470&auto=format&fit=crop)
 
+> [!NOTE]
+> **Demo Environment**: Email OTP is currently running in sandbox/testing mode. For demonstration purposes, OTP emails are enabled only for the configured demo email address.
+
 ## ✨ Features
 
 - **Next-Gen AI Engine**: Context-aware resume generation and optimization.

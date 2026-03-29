@@ -342,6 +342,9 @@ const ForgotPassword = () => {
                     }`}
                     placeholder="Enter your email"
                   />
+                  <p className="mt-2 text-xs text-gray-400 font-medium">
+                    Demo mode: OTP email currently works only for the configured test email.
+                  </p>
                 </motion.div>
               </div>
 

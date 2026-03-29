@@ -3,6 +3,8 @@ const Otp = require('../models/Otp');
 const { sendOtpEmail } = require('../utils/sendEmail');
 const { signAccessToken } = require('../utils/jwt');
 
+const DEMO_EMAIL = "yuvrajsingh43344@gmail.com";
+
 // Generate 6-digit OTP
 const generateOTP = () => {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -77,6 +79,15 @@ const signupOTP = async (req, res) => {
 
     // Save OTP to database
     await saveOTP(email, otp);
+
+    // Sandbox Restriction: Only send email to demo address
+    if (email !== DEMO_EMAIL) {
+      console.log(`ℹ️ Skipping email send for non-demo address: ${email}`);
+      return res.status(403).json({
+        success: false,
+        message: "OTP email is currently available only for demo/testing mode.",
+      });
+    }
 
     // Send OTP via email
     try {
@@ -255,6 +266,15 @@ const forgotPassword = async (req, res) => {
 
     // Save OTP
     await saveOTP(email, otp);
+
+    // Sandbox Restriction: Only send email to demo address
+    if (email.toLowerCase() !== DEMO_EMAIL.toLowerCase()) {
+      console.log(`ℹ️ Skipping forgot-password email for non-demo address: ${email}`);
+      return res.status(200).json({ // Use 200 to not reveal if user exists, but give info
+        success: true,
+        message: "For now, OTP email is enabled only for the demo email address.",
+      });
+    }
 
     // Send OTP via email
     try {

@@ -253,6 +253,9 @@ const Signup = () => {
                     className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-gray-100"
                     placeholder="Enter your email"
                   />
+                  <p className="mt-1.5 text-xs text-gray-400 font-medium">
+                    Demo mode: OTP email currently works only for the configured test email.
+                  </p>
                 </div>
               </div>
 
