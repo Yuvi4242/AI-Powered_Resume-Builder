@@ -1,94 +1,166 @@
 # AI-Powered Resume Builder 🚀
 
-A premium, production-ready MERN stack application designed to help professionals craft high-impact, ATS-optimized resumes using advanced AI intelligence.
+A high-performance, full-stack web application designed to help professionals craft high-impact, ATS-optimized resumes using advanced AI intelligence. This platform combines a secure authentication system with intuitive tools for building, managing, and enhancing resume content.
 
-![Landing Preview](https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=1470&auto=format&fit=crop)
+## 🚀 Live Demo
 
-> [!NOTE]
-> **Demo Environment**: Email OTP is currently running in sandbox/testing mode. For demonstration purposes, OTP emails are enabled only for the configured demo email address.
+- **Frontend**: [https://ai-powered-resume-builder-theta.vercel.app](https://ai-powered-resume-builder-theta.vercel.app)
+- **Backend API**: [https://ai-resume-backend-pg2k.onrender.com](https://ai-resume-backend-pg2k.onrender.com)
+- **GitHub Repo**: [https://github.com/Yuvi4242/AI-Powered_Resume-Builder](https://github.com/Yuvi4242/AI-Powered_Resume-Builder)
+
+---
 
 ## ✨ Features
 
-- **Next-Gen AI Engine**: Context-aware resume generation and optimization.
-- **Real-Time ATS Scoring**: Deep scan analysis to ensure your resume beats automated filters (98%+ success rate).
-- **Premium SaaS UI**: Modern, glassmorphic design system built with Tailwind CSS and Framer Motion.
-- **Silent Auto-Save**: Never lose progress with debounced cloud and local storage synchronization.
-- **Pixel-Perfect Export**: Professional A4 PDF generation and high-definition image exports.
-- **AI Copilot**: Integrated chatbot assistant for real-time career coaching and content rewriting.
-- **Secure Authentication**: JWT-based auth with rate-limiting and security headers (Helmet.js).
+### Authentication & Security
+- **OTP-Based Verification**: Secure user signup with 6-digit email verification.
+- **Robust Authorization**: JWT-based session management with protected routes.
+- **Account Recovery**: Comprehensive Forgot Password / Reset Password flow.
+- **Security Headers**: Implementation of Helmet.js for enhanced production security.
 
-## 🛠️ Technology Stack
+### User Profile Management
+- **Centralized Data**: Create and update professional profile details stored in MongoDB.
+- **Persistent Sessions**: Seamless user experience with state-aware navigation.
 
-| Layer | Technology |
-|---|---|
-| **Frontend** | React, Tailwind CSS, Framer Motion, Lucide Icons |
-| **Backend** | Node.js, Express.js |
-| **Database** | MongoDB (Atlas) |
-| **AI** | Gemini / Groq API Integration |
-| **Security** | JWT, Helmet.js, Express-Rate-Limit |
-| **Deployment** | Vercel (Frontend), Railway/Render (Backend) |
+### AI-Powered Resume Builder
+- **AI-Assisted Content**: Intelligent generation and optimization of resume sections.
+- **Smart Suggestions**: Context-aware writing tips for better resume quality.
+- **Structured Workflow**: Intuitive interface for managing complex resume data.
 
-## 🚀 Local Deployment
+### Production-Ready Infrastructure
+- **Cross-Origin Security**: Configured CORS for secure Vercel-to-Render communication.
+- **Reliable Dispatch**: Migrated to Resend HTTP API for high-deliverability OTP emails.
+- **Production Monitoring**: Sanitized logging and environment-based configurations.
 
-### 1. Prerequisites
-- Node.js (v18+)
-- MongoDB Atlas account (or local MongoDB)
-- AI API Key (Gemini or Groq)
+---
 
-### 2. Backend Setup
+## 🛠️ Tech Stack
+
+### Frontend
+- **React.js**: Modern component-based architecture.
+- **Tailwind CSS**: Professional, glassmorphic styling system.
+- **Framer Motion**: Smooth, high-end UI animations.
+
+### Backend
+- **Node.js & Express.js**: High-performance RESTful API.
+- **MongoDB (Atlas)**: Scalable NoSQL database layer.
+- **Resend API**: Professional email infrastructure for OTP delivery.
+- **JWT**: Secure token-based authentication.
+
+### DevOps
+- **Vercel**: Optimized frontend hosting.
+- **Render**: Reliable backend service deployment.
+- **MongoDB Atlas**: Cloud-hosted database synchronization.
+
+---
+
+## 📂 Project Structure
+
 ```bash
-cd backend
-npm install
-# Create .env file based on .env.example
-npm start
-```
-
-### 3. Frontend Setup
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-## 🌍 Production Deployment Guide
-
-### Frontend (Vercel/Netlify)
-1. Connect your GitHub repository.
-2. Set Build Command: `npm run build`.
-3. Set Output Directory: `dist`.
-4. Configure Environment Variables:
-   - REACT_APP_API_URL=http://localhost:5000
-### Backend (Railway/Render/Heroku)
-1. Connect your GitHub repository.
-2. Configure Environment Variables:
-   - `MONGO_URI`: Your production MongoDB connection string.
-   - `JWT_SECRET`: A secure random string.
-   - `GROQ_API_KEY`: Your AI service key.
-   - `NODE_ENV`: `production`.
-3. Start Command: `node server.js`.
-
-## 🛡️ Security Measures
-- **Rate-Limiting**: Prevents brute-force attacks on auth and heavy AI routes.
-- **Helmet**: Adds 15+ security headers to protect against common web vulnerabilities.
-- **CORS Protection**: Restricted to authorized production domains.
-- **Input Sanitization**: Standardized JSON body parsing and error handling.
-
-## 📁 Project Structure
-```text
-├── backend/
-│   ├── config/         # Database and Passport config
-│   ├── controllers/    # API logic
-│   ├── models/         # Mongoose schemas
-│   ├── routes/         # Express routes
-│   └── server.js       # Entry point
-└── frontend/           # React application
-    ├── src/
-    │   ├── components/  # UI and shared components
-    │   ├── context/     # Global state (Toast, Search)
-    │   ├── pages/       # Route-based views
-    │   └── utils/       # API services and helpers
+AI_Resume/
+│
+├── frontend/        # React.js application
+├── backend/         # Node.js + Express.js API
+├── README.md        # Comprehensive project documentation
+└── ...
 ```
 
 ---
 
-Built with ❤️ for high-performance career growth.
+## ⚙️ Environment Variables
+
+### Backend `.env`
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+RESEND_API_KEY=your_resend_api_key
+EMAIL_FROM=onboarding@resend.dev
+FRONTEND_URL=https://ai-powered-resume-builder-theta.vercel.app
+NODE_ENV=production
+```
+
+### Frontend `.env`
+```env
+REACT_APP_API_URL=https://ai-resume-backend-pg2k.onrender.com
+```
+
+---
+
+## ▶️ Local Setup
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/Yuvi4242/AI-Powered_Resume-Builder.git
+cd AI-Powered_Resume-Builder
+```
+
+### 2. Install dependencies
+**Backend:**
+```bash
+cd backend
+npm install
+```
+
+**Frontend:**
+```bash
+cd ../frontend
+npm install
+```
+
+### 3. Run Locally
+**Start Backend (Dev Mode):**
+```bash
+cd backend
+npm run dev
+```
+
+**Start Frontend:**
+```bash
+cd frontend
+npm start
+```
+
+---
+
+## 🔄 Authentication Flow
+
+1. **User Signup**: User submits details; a 6-digit OTP is generated.
+2. **Email Delivery**: OTP is delivered via Resend API to the registered email.
+3. **Verification**: OTP is verified against the database before account activation.
+4. **Secure Login**: User receives a JWT for subsequent authorized requests.
+5. **Session Management**: JWT is used to access protected Resume and Profile routes.
+
+---
+
+## 🧪 Demo Note
+> [!IMPORTANT]
+> **Sandbox Mode**: Email OTP is currently running in testing mode. For demonstration purposes, OTP email delivery is enabled only for the configured test email address. The core authentication and OTP flow are otherwise fully implemented and production-ready.
+
+---
+
+## 📌 Challenges Solved
+- **Deployment Stabilization**: Resolved critical `ENETUNREACH` issues on Render by migrating from SMTP/Nodemailer to the Resend HTTP API.
+- **CORS Optimization**: Configured dynamic origin whitelisting to enable secure communication between Vercel and Render.
+- **Auth Robustness**: Built a database-backed OTP verification system with expiration logic and secure password hashing.
+- **Full-Stack Sync**: Unified environment variable management to ensure seamless local-to-production transitions.
+
+---
+
+## 🔮 Future Improvements
+- [ ] **Resume PDF Export**: High-fidelity A4 PDF generation.
+- [ ] **Templates Library**: Multiple professional resume design options.
+- [ ] **AI-Generated Cover Letters**: Expand AI capabilities to cover letter drafting.
+- [ ] **Public Portfolio Sharing**: Generate shareable links for hosted resumes.
+- [ ] **OAuth Integration**: Social login support (Google/GitHub).
+
+---
+
+## 👨‍💻 Author
+
+**Yuvraj Singh**
+- **LinkedIn**: [LinkedIn Profile](https://www.linkedin.com/in/yuvi4242)
+- **GitHub**: [@Yuvi4242](https://github.com/Yuvi4242)
+
+---
+**Tech Stack**: React.js, Node.js, Express.js, MongoDB, JWT, Resend API, Vercel, Render
