@@ -18,8 +18,8 @@ const saveOTP = async (email, otp) => {
   // Delete existing OTPs for this email
   await Otp.deleteMany({ email });
 
-  // Create new OTP with 2-minute expiry
-  const expiresAt = new Date(Date.now() + 2 * 60 * 1000);
+  // Create new OTP with 10-minute expiry
+  const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
   await Otp.create({
     email,
     otp,

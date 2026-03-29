@@ -29,11 +29,11 @@ const sendOtpEmail = async (to, otp) => {
     });
 
     if (response.error) {
-       console.error("❌ Resend API Error:", response.error);
+       console.error("❌ Resend API Error:", JSON.stringify(response.error, null, 2));
        throw new Error(response.error.message || "Email failed to send via Resend");
     }
 
-    console.log("✅ Email sent via Resend:", response.data.id);
+    console.log("✅ Email sent via Resend:", response.data?.id || "unknown-id");
     return response;
   } catch (error) {
     console.error("❌ Email failed:", error.message);

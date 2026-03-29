@@ -19,8 +19,7 @@ if (isDev) {
   console.log('=== Environment Variables (sanitized) ===');
   console.log('PORT:', process.env.PORT || 'not set (default 5000)');
   console.log('MONGO_URI:', process.env.MONGO_URI ? 'set' : 'not set');
-  console.log('EMAIL_USER:', process.env.EMAIL_USER ? 'set' : 'not set');
-  console.log('EMAIL_PASS:', process.env.EMAIL_PASS ? 'set' : 'not set');
+  console.log('RESEND_API_KEY:', process.env.RESEND_API_KEY ? 'set' : 'not set');
   console.log('GROQ_API_KEY:', process.env.GROQ_API_KEY ? 'set' : 'not set');
   console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'set' : 'not set');
 }
