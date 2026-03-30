@@ -3,7 +3,7 @@ const { Resend } = require('resend');
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 /**
- * Send OTP via email using Resend API (HTTP)
+ * Send OTP via email using Resend
  * @param {string} to - Recipient email
  * @param {string} otp - 6-digit OTP
  * @returns {Promise<object>} response from Resend
@@ -12,7 +12,7 @@ const sendOtpEmail = async (to, otp) => {
   try {
     const response = await resend.emails.send({
       from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
-      to,
+      to: [to],
       subject: "Your Verification Code",
       html: `
         <div style="font-family: 'Inter', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #e2e8f0; border-radius: 12px; background-color: #ffffff;">
@@ -29,12 +29,12 @@ const sendOtpEmail = async (to, otp) => {
     });
 
     if (response.error) {
-       console.error("❌ Resend API Error:", JSON.stringify(response.error, null, 2));
-       throw new Error(response.error.message || "Email failed to send via Resend");
+      console.error("❌ Email failed:", response.error.message);
+      throw new Error(response.error.message);
     }
 
-    console.log("✅ Email sent via Resend:", response.data?.id || "unknown-id");
-    return response;
+    console.log("✅ Email sent via Resend:", response.data?.id);
+    return { data: { id: response.data?.id } };
   } catch (error) {
     console.error("❌ Email failed:", error.message);
     throw error;
