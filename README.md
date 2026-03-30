@@ -51,7 +51,7 @@ A quick visual overview of the application interface and key user flows.
 ![Profile Page](./screenshots/profile.png)
 
 ### Templates 
-![Templates Page](.screenshots/templates.png)
+![Templates Page](./screenshots/templates.png)
 
 
 ---
