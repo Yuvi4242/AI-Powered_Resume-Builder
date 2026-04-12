@@ -1,6 +1,5 @@
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import PageTransition from './components/PageTransition';
-import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import ForgotPassword from './pages/ForgotPassword';
 import Login from './pages/Login';
@@ -18,25 +17,17 @@ import ResourceDetails from './pages/ResourceDetails';
 import { SearchProvider } from './context/SearchContext';
 import { ToastProvider } from './context/ToastContext';
 import ChatWidget from './components/ChatWidget';
-
-// Protected Route wrapper
-const ProtectedRoute = ({ children, withLayout = true }) => {
-  const token = localStorage.getItem('token');
-  
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-  
-  return withLayout ? <Layout>{children}</Layout> : children;
-};
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
     <ToastProvider>
       <SearchProvider>
-        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-          <div className="App overflow-x-hidden transition-colors duration-300 min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Routes>
+        <AuthProvider>
+          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <div className="App overflow-x-hidden transition-colors duration-300 min-h-screen bg-gray-50 dark:bg-gray-900">
+              <Routes>
               <Route 
                 path="/login" 
                 element={
@@ -162,6 +153,7 @@ function App() {
             {localStorage.getItem('token') && <ChatWidget />}
           </div>
         </Router>
+        </AuthProvider>
       </SearchProvider>
     </ToastProvider>
   );

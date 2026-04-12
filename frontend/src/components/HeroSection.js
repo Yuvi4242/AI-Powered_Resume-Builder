@@ -3,9 +3,11 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowRight, FiShield } from 'react-icons/fi';
 import { Button } from './ui/Button';
+import { useAuth } from '../context/AuthContext';
 
 const HeroSection = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   return (
     <section className="relative pt-32 pb-24 px-6 max-w-7xl mx-auto overflow-hidden">
@@ -42,10 +44,10 @@ const HeroSection = () => {
           <div className="flex flex-col sm:flex-row gap-5 mb-14">
             <Button 
               size="lg"
-              onClick={() => navigate('/signup')} 
+              onClick={() => navigate(isAuthenticated ? '/dashboard' : '/signup')} 
               className="group"
             >
-              Start Building Free 
+              {isAuthenticated ? 'Go to Dashboard' : 'Start Building Free'} 
               <FiArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
             </Button>
             <Button 

@@ -2,8 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiSearch, FiBell, FiMenu, FiX, FiUser, FiLogOut, FiMoon, FiSun, FiSettings, FiActivity, FiChevronDown } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
-import { removeToken } from '../utils/api';
 import { useSearch } from '../context/SearchContext';
+import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 import Logo from './Logo';
 
 const Navbar = ({ title, onMenuToggle, isSidebarOpen }) => {
@@ -12,7 +13,7 @@ const Navbar = ({ title, onMenuToggle, isSidebarOpen }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [hasNewNotifications, setHasNewNotifications] = useState(true);
   const { searchQuery, setSearchQuery } = useSearch();
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const notificationsRef = useRef(null);
@@ -36,9 +37,12 @@ const Navbar = ({ title, onMenuToggle, isSidebarOpen }) => {
     document.documentElement.classList.toggle('dark');
   };
 
-  const handleLogout = () => {
-    removeToken();
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await axios.post('/api/auth/signout');
+    } catch(err) {}
+    logout();
+    navigate('/');
   };
 
   return (

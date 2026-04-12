@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import { FiArrowRight, FiCheck, FiLock, FiMail, FiPhone, FiUser, FiZap } from 'react-icons/fi';
 import { Link, useNavigate } from 'react-router-dom';
 import OTPInput from '../components/OTPInput';
-import { authAPI } from '../utils/api';
+import api from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 
 const Signup = () => {
   const [step, setStep] = useState(1);
@@ -11,12 +12,14 @@ const Signup = () => {
     name: '',
     email: '',
     password: '',
+    confirmPassword: '',
   });
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(0);
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   // Timer effect
@@ -47,17 +50,18 @@ const Signup = () => {
   };
 
   const handleSendOTP = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setIsLoading(true);
     setError('');
     setSuccessMessage('');
 
     try {
-      const response = await authAPI.signupOTP({
+      const response = await api.post('auth/send-otp', {
+        name: formData.name,
         email: formData.email,
       });
 
-      if (response.data.success) {
+      if (response.status === 200) {
         setStep(2);
         setTimer(120);
         setSuccessMessage('OTP sent to your email');
@@ -75,10 +79,11 @@ const Signup = () => {
     setSuccessMessage('');
 
     try {
-      const response = await authAPI.signupOTP({
+      const response = await api.post('auth/send-otp', {
+        name: formData.name,
         email: formData.email,
       });
-      if (response.data.success) {
+      if (response.status === 200) {
         setTimer(120);
         setSuccessMessage('OTP sent to your email');
       }
@@ -100,19 +105,40 @@ const Signup = () => {
     setError('');
 
     try {
-      const response = await authAPI.signupVerify({
-        name: formData.name,
+      const response = await api.post('auth/verify-otp', {
         email: formData.email,
-        password: formData.password,
         otp,
       });
 
-      if (response.data.success) {
-        alert('Account created successfully! Please login.');
-        navigate('/login');
+      if (response.status === 200) {
+        setStep(3);
+        setSuccessMessage('OTP Verified successfully');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid OTP');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await api.post('auth/signup', {
+        email: formData.email,
+        password: formData.password,
+        confirmPassword: formData.confirmPassword,
+      });
+
+      if (response.status === 201) {
+        login(response.data.user, response.data.token);
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Signup failed');
     } finally {
       setIsLoading(false);
     }
@@ -183,12 +209,14 @@ const Signup = () => {
 
           {/* Header */}
           <h2 className="text-3xl font-bold text-gray-800 mb-2">
-            {step === 1 ? 'Create account' : 'Verify OTP'}
+            {step === 1 ? 'Create account' : step === 2 ? 'Verify OTP' : 'Create Password'}
           </h2>
           <p className="text-gray-500 mb-8">
             {step === 1 
               ? 'Enter your details to get started' 
-              : 'Enter the 6-digit code sent to your email'
+              : step === 2 
+                ? 'Enter the 6-digit code sent to your email'
+                : 'Set a secure password for your account'
             }
           </p>
 
@@ -253,30 +281,6 @@ const Signup = () => {
                     className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-gray-100"
                     placeholder="Enter your email"
                   />
-                  <p className="mt-1.5 text-xs text-gray-400 font-medium">
-                    Demo mode: OTP email currently works only for the configured test email.
-                  </p>
-                </div>
-              </div>
-
-
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Password
-                </label>
-                <div className="relative">
-                  <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                    disabled={isLoading}
-                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-gray-100"
-                    placeholder="Create a password"
-                  />
                 </div>
               </div>
 
@@ -297,7 +301,7 @@ const Signup = () => {
                 )}
               </motion.button>
             </form>
-          ) : (
+          ) : step === 2 ? (
             <form onSubmit={handleVerifyOTP} className="space-y-5">
               <div>
                 <OTPInput onChange={setOtp} disabled={isLoading} />
@@ -325,7 +329,7 @@ const Signup = () => {
                 disabled={isLoading || otp.length !== 6}
                 className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all disabled:opacity-50"
               >
-                {isLoading ? 'Verifying...' : 'Verify & Create Account'}
+                {isLoading ? 'Verifying...' : 'Verify OTP'}
               </motion.button>
 
               <button
@@ -335,6 +339,71 @@ const Signup = () => {
                 className="w-full py-3 text-gray-500 hover:text-gray-700 font-medium"
               >
                 Back to Signup
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleSignup} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    disabled={isLoading}
+                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                    placeholder="Create a password (min 8 chars)"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                    disabled={isLoading}
+                    className="w-full pl-12 pr-4 py-4 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all disabled:bg-gray-100"
+                    placeholder="Confirm your password"
+                  />
+                </div>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-4 bg-gradient-to-r from-primary-500 to-accent-500 text-white rounded-xl font-semibold shadow-lg shadow-primary-500/25 hover:shadow-primary-500/40 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    Create Account
+                    <FiArrowRight className="w-5 h-5" />
+                  </>
+                )}
+              </motion.button>
+              <button
+                type="button"
+                onClick={() => setStep(2)}
+                disabled={isLoading}
+                className="w-full py-3 text-gray-500 hover:text-gray-700 font-medium"
+              >
+                Back to OTP
               </button>
             </form>
           )}

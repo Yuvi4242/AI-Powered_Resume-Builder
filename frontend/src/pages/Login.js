@@ -2,8 +2,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
 import { FiAlertCircle, FiArrowLeft, FiArrowRight, FiEye, FiEyeOff, FiLock, FiMail, FiPhone, FiZap } from 'react-icons/fi';
 import { Link, useNavigate } from 'react-router-dom';
-import { authAPI, setToken } from '../utils/api';
-import OTPInput from '../components/OTPInput';
+import api from '../utils/api';
+import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/Button';
 
 const Login = () => {
@@ -19,6 +19,7 @@ const Login = () => {
   const [inputError, setInputError] = useState({ email: false, password: false });
   const [shakeKey, setShakeKey] = useState(0); // To trigger shake animation
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,14 +48,10 @@ const Login = () => {
     setError('');
 
     try {
-      const response = await authAPI.login({
-        email: formData.email,
-        password: formData.password,
-      });
+      const response = await api.post('auth/signin', formData);
 
-      if (response.data.success) {
-        setToken(response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+      if (response.status === 200) {
+        login(response.data.user, response.data.token);
         navigate('/dashboard');
       }
     } catch (err) {

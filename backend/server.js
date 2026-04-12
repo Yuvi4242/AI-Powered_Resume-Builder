@@ -8,7 +8,7 @@ const rateLimit = require('express-rate-limit');
 const { isDev } = require('./config/env');
 
 const connectDB = require('./config/db');
-const authRoutes = require('./routes/authRoutes');
+const authRoutes = require('./routes/auth.routes.js');
 const aiRoutes = require('./routes/aiRoutes');
 const copilotRoutes = require('./routes/copilotRoutes');
 const resumeRoutes = require('./routes/resumeRoutes');
