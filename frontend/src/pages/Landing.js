@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { FiZap, FiCheckCircle, FiStar, FiArrowRight, FiShield, FiCpu, FiLayout, FiActivity } from 'react-icons/fi';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { useAuth } from '../context/AuthContext';
 import Footer from '../components/Footer';
 import Logo from '../components/Logo';
 import HeroSection from '../components/HeroSection';
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const features = [
     { 
@@ -46,18 +48,26 @@ const Landing = () => {
           </div>
 
           <div className="flex items-center gap-6">
-            <button 
-              onClick={() => navigate('/login')} 
-              className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-300 hover:text-primary-500 transition-colors"
-            >
-              Sign In
-            </button>
-            <Button 
-              size="sm"
-              onClick={() => navigate('/signup')} 
-            >
-              Sign Up Free
-            </Button>
+            {isAuthenticated ? (
+              <Button size="sm" onClick={() => navigate('/dashboard')}>
+                Dashboard
+              </Button>
+            ) : (
+              <>
+                <button 
+                  onClick={() => navigate('/login')} 
+                  className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-600 dark:text-slate-300 hover:text-primary-500 transition-colors"
+                >
+                  Sign In
+                </button>
+                <Button 
+                  size="sm"
+                  onClick={() => navigate('/signup')} 
+                >
+                  Sign Up Free
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -115,13 +125,23 @@ const Landing = () => {
           <p className="text-slate-400 text-xl mb-12 font-medium max-w-2xl mx-auto">Join 100,000+ professionals who beat the odds and skipped the line to their dream roles using our platform.</p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <Button 
-              size="lg" 
-              onClick={() => navigate('/signup')}
-              className="shadow-2xl shadow-primary-500/50 min-w-[220px]"
-            >
-              Start Building Now
-            </Button>
+            {isAuthenticated ? (
+              <Button 
+                size="lg" 
+                onClick={() => navigate('/dashboard')}
+                className="shadow-2xl shadow-primary-500/50 min-w-[220px]"
+              >
+                Go to Dashboard
+              </Button>
+            ) : (
+              <Button 
+                size="lg" 
+                onClick={() => navigate('/signup')}
+                className="shadow-2xl shadow-primary-500/50 min-w-[220px]"
+              >
+                Start Building Now
+              </Button>
+            )}
             <div className="flex items-center gap-2 group cursor-pointer" onClick={() => navigate('/templates')}>
                 <span className="text-white font-bold text-sm border-b border-white/20 group-hover:border-white transition-all">View Premium Templates</span>
                 <FiArrowRight className="text-white group-hover:translate-x-1 transition-transform" />

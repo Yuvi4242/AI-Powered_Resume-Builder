@@ -3,8 +3,9 @@ import axios from 'axios';
 // In production, use the environment variable for the backend root.
 // If not set, fallback to the current window location (useful for same-origin setups).
 export const BASE_URL = 
-  process.env.REACT_APP_API_URL || 
-  (window?.location?.origin || 'http://localhost:5000');
+  process.env.NODE_ENV === 'production' && process.env.REACT_APP_API_URL
+    ? process.env.REACT_APP_API_URL
+    : 'http://localhost:5000';
 
 const API_BASE_URL = `${BASE_URL}/api/`;
 
