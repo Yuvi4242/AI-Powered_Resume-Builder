@@ -36,33 +36,15 @@ app.use(helmet({
   contentSecurityPolicy: false, // Disabled for dev flexibility, can be tightened later
 }));
 
-// CORS Configuration (Refine for production deployment)
-const allowedOrigins = [
-  "http://localhost:3000",
-  "http://localhost:5173",
-  "http://127.0.0.1:3000",
-  "https://ai-powered-resume-builder-theta.vercel.app"
-];
+// CORS Configuration
+app.use(cors({
+  origin: "https://ai-powered-resume-builder-wine.vercel.app",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1 || isDev) {
-      callback(null, true);
-    } else {
-      console.log("❌ CORS blocked origin:", origin);
-      callback(new Error("CORS not allowed: " + origin));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
-  optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
+// Preflight handling
+app.options("*", cors());
 
 app.use(express.json({ limit: '1mb' }));
 
