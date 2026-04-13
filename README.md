@@ -4,7 +4,7 @@ A high-performance, full-stack web application designed to help professionals cr
 
 ## 🚀 Live Demo
 
-- **Frontend**: [https://ai-powered-resume-builder-theta.vercel.app](https://ai-powered-resume-builder-theta.vercel.app)
+- **Frontend**: [https://ai-powered-resume-builder-wine.vercel.app/](https://ai-powered-resume-builder-wine.vercel.app)
 - **Backend API**: [https://ai-resume-backend-pg2k.onrender.com](https://ai-resume-backend-pg2k.onrender.com)
 - **GitHub Repo**: [https://github.com/Yuvi4242/AI-Powered_Resume-Builder](https://github.com/Yuvi4242/AI-Powered_Resume-Builder)
 
